@@ -1,5 +1,5 @@
 
-<p align="center"><h1 align="center">Backend TutorIA</h1></p>
+<p align="center"><h1 align="center">Hiring Group</h1></p>
 <p align="center">
 
 </p>
