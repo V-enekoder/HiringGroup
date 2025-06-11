@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/V-enekoder/HiringGroup/config"
+	"github.com/V-enekoder/HiringGroup/src/role"
 	"github.com/V-enekoder/HiringGroup/src/user"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -24,6 +25,7 @@ func main() {
 		})
 	})
 	user.RegisterRoutes(r)
+	role.RegisterRoutes(r)
 
 	r.Run()
 }
