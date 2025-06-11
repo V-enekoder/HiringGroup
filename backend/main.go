@@ -19,6 +19,7 @@ func init() {
 func main() {
 	r := gin.Default()
 	r.Use(cors.Default())
+	r.SetTrustedProxies(nil)
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
