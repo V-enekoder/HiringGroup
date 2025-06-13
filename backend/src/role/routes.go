@@ -6,7 +6,7 @@ import (
 
 func RegisterRoutes(router *gin.Engine) {
 
-	roles := router.Group("/role")
+	roles := router.Group("/roles")
 	{
 		roles.POST("/", CreateRoleController)
 		roles.GET("/", GetAllRolesController)

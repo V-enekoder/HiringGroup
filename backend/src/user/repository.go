@@ -49,7 +49,7 @@ func GetPasswordUserRepository(id uint) (string, error) {
 func UserExistsByFieldRepository(field string, value interface{}, excludeId uint) (bool, error) {
 	db := config.DB
 	var count int64
-	query := fmt.Sprintf("%s = ? AND id != ? AND deleted_at IS NULL", field)
+	query := fmt.Sprintf("%s = ? AND id != ? ", field)
 	if err := db.Model(&schema.User{}).Where(query, value, excludeId).Count(&count).Error; err != nil {
 		return false, err
 	}

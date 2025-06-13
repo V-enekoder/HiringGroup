@@ -12,7 +12,7 @@ type Role struct {
 	Users []User `gorm:"foreignKey:RoleID"`
 }
 
-type User struct {
+type User struct { //Actualizar email y contraseña en un solo endpoint
 	ID       uint `gorm:"primaryKey"`
 	RoleID   uint
 	Name     string `gorm:"size:255;not null"`
@@ -63,7 +63,7 @@ type Candidate struct {
 	BankID             *uint // Nullable, se quedará en nil
 	EmergencyContactID *uint // Nullable, se quedará en nil
 	UserID             uint
-	LastName           string `gorm:"size:255;not null" faker:"last_name"`
+	LastName           string `gorm:"size:255;not null"`
 	Document           string // Genera un número como de documento
 	BloodType          string
 	Address            string

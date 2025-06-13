@@ -25,9 +25,9 @@ func main() {
 
 	runSeeder("Roles", SeedRoles)
 	runSeeder("Zonas", SeedZones)
-	runSeeder("Profesiones", SeedProfessions)
-	runSeeder("Períodos de Contratación", SeedContractingPeriods)
-	runSeeder("Bancos", SeedBanks)
+	runSeeder("Profesiones", SeedProfessions)                     //Cesar
+	runSeeder("Períodos de Contratación", SeedContractingPeriods) //Cesar
+	runSeeder("Bancos", SeedBanks)                                //Cesar
 	runSeeder("Admins", SeedAdmins)
 	runSeeder("Candidatos", SeedCandidates)
 	runSeeder("EmpleadosHG", SeedEmployeesHG)
