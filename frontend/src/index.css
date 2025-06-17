@@ -1,0 +1,12 @@
+body {
+  margin: 0;
+  padding: 0; 
+}
+
+/* Botón para regresar al inicio */
+.fixed-action-button {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000; 
+}
