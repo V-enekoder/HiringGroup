@@ -187,7 +187,7 @@ type Postulation struct {
 	// Relaciones
 	Candidate Candidate `gorm:"foreignKey:CandidateID"`
 	JobOffer  JobOffer  `gorm:"foreignKey:JobID"`
-	Contract  *Contract `gorm:"foreignKey:PostulationID"`
+	Contract  *Contract `gorm:"foreignKey:PostulationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // Contract representa la tabla "contracts"
