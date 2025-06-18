@@ -193,13 +193,13 @@ type Postulation struct {
 // Contract representa la tabla "contracts"
 type Contract struct {
 	ID            uint `gorm:"primaryKey"`
-	PostulationID uint // Clave foránea
+	PostulationID uint `gorm:"uniqueIndex"`
 	PeriodID      uint // Clave foránea
 	Active        bool
 	// Relaciones
 	Postulation       Postulation       `gorm:"foreignKey:PostulationID"`
 	ContractingPeriod ContractingPeriod `gorm:"foreignKey:PeriodID"`
-	Payments          []Payment         `gorm:"foreignKey:ContractID"`
+	Payments          []Payment         `gorm:"foreignKey:ContractID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // Payment representa la tabla "payments"
