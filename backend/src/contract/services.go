@@ -5,7 +5,6 @@ import (
 
 	"github.com/V-enekoder/HiringGroup/config"
 	"github.com/V-enekoder/HiringGroup/src/schema"
-	"gorm.io/gorm"
 )
 
 var ErrContractExists = errors.New("a contract already exists for this postulation")
@@ -70,6 +69,28 @@ func GetContractByIDService(id uint) (ContractResponseDTO, error) {
 	return mapToResponseDTO(c), nil
 }
 
+func GetPaymentSummaryService(contractID uint) (PaymentSummaryDTO, error) {
+	// Primero, verificamos si el contrato existe y obtenemos datos de contexto.
+	contract, err := GetContractByIDRepository(contractID)
+	if err != nil {
+		// Si GORM no encuentra el registro, devuelve un error que propagamos.
+		return PaymentSummaryDTO{}, errors.New("contract not found")
+	}
+
+	// Luego, llamamos al repositorio que hará la suma en la base de datos.
+	summary, err := GetPaymentSummaryRepository(contractID)
+	if err != nil {
+		return PaymentSummaryDTO{}, err
+	}
+
+	// Completamos el DTO con la información de contexto que ya teníamos.
+	summary.ContractID = contract.ID
+	summary.CandidateName = contract.Postulation.Candidate.User.Name + " " + contract.Postulation.Candidate.LastName
+	summary.CompanyName = contract.Postulation.JobOffer.Company.Name
+
+	return summary, nil
+}
+
 func UpdateContractService(id uint, dto ContractUpdateDTO) (ContractResponseDTO, error) {
 	updateData := make(map[string]interface{})
 	if dto.PeriodID != nil {
@@ -88,12 +109,4 @@ func UpdateContractService(id uint, dto ContractUpdateDTO) (ContractResponseDTO,
 	}
 
 	return GetContractByIDService(id)
-}
-
-func DeleteContractService(id uint) error {
-	err := DeleteContractRepository(id)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return err
-	}
-	return nil
 }

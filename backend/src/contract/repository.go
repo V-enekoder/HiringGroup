@@ -1,6 +1,8 @@
 package contract
 
 import (
+	"errors"
+
 	"github.com/V-enekoder/HiringGroup/config"
 	"github.com/V-enekoder/HiringGroup/src/schema"
 	"gorm.io/gorm"
@@ -50,6 +52,34 @@ func GetContractByIDRepository(id uint) (schema.Contract, error) {
 	return c, err
 }
 
+func GetPaymentSummaryRepository(contractID uint) (PaymentSummaryDTO, error) {
+	var summary PaymentSummaryDTO
+	db := config.DB
+
+	// Construimos la consulta con SELECT para sumar y contar.
+	// Esto es mucho más eficiente que traer todos los registros.
+	err := db.Model(&schema.Payment{}).
+		Select(`
+			COUNT(*) as payments_count,
+			SUM(amount) as total_gross_amount,
+			SUM(hiring_group_fee) as total_hiring_group_fee,
+			SUM(inces_fee) as total_inces_fee,
+			SUM(social_security_fee) as total_social_security_fee,
+			SUM(net_amount) as total_net_amount
+		`).
+		Where("contract_id = ?", contractID).
+		Group("contract_id"). // Agrupar es buena práctica en agregaciones
+		Scan(&summary).Error
+
+	// Si no hay pagos, GORM podría devolver ErrRecordNotFound.
+	// En este caso, no es un error, simplemente devolvemos un resumen vacío (con ceros).
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return PaymentSummaryDTO{}, err
+	}
+
+	return summary, nil
+}
+
 func UpdateContractRepository(id uint, data map[string]interface{}) error {
 	db := config.DB
 	result := db.Model(&schema.Contract{}).Where("id = ?", id).Updates(data)
@@ -60,9 +90,4 @@ func UpdateContractRepository(id uint, data map[string]interface{}) error {
 		return gorm.ErrRecordNotFound
 	}
 	return nil
-}
-
-func DeleteContractRepository(id uint) error {
-	db := config.DB
-	return db.Delete(&schema.Contract{}, id).Error
 }

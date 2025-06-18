@@ -54,6 +54,23 @@ func GetContractByIDController(c *gin.Context) {
 	c.JSON(http.StatusOK, contract)
 }
 
+func GetPaymentSummaryController(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid contract ID format"})
+		return
+	}
+
+	summary, err := GetPaymentSummaryService(uint(id))
+	if err != nil {
+		// El servicio devolverá un error si el contrato no se encuentra
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, summary)
+}
+
 func UpdateContractController(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -74,19 +91,4 @@ func UpdateContractController(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, updatedContract)
-}
-
-func DeleteContractController(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
-		return
-	}
-
-	if err := DeleteContractService(uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Contract deleted successfully"})
 }

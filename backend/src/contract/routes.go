@@ -9,6 +9,6 @@ func RegisterRoutes(router *gin.Engine) {
 		contracts.GET("/", GetAllContractsController)
 		contracts.GET("/:id", GetContractByIDController)
 		contracts.PUT("/:id", UpdateContractController)
-		contracts.DELETE("/:id", DeleteContractController)
+		contracts.GET("/:id/payment-summary", GetPaymentSummaryController)
 	}
 }

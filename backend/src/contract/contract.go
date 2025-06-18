@@ -23,3 +23,15 @@ type ContractResponseDTO struct {
 	CompanyName      string  `json:"companyName"`
 	PaymentsCount    int     `json:"paymentsCount"`
 }
+
+type PaymentSummaryDTO struct {
+	ContractID             uint    `json:"contractId"`
+	CandidateName          string  `json:"candidateName"`
+	CompanyName            string  `json:"companyName"`
+	PaymentsCount          int64   `json:"paymentsCount"`
+	TotalGrossAmount       float64 `json:"totalGrossAmount"`
+	TotalHiringGroupFee    float64 `json:"totalHiringGroupFee"`
+	TotalINCESFee          float64 `json:"totalINCESFee"`
+	TotalSocialSecurityFee float64 `json:"totalSocialSecurityFee"`
+	TotalNetAmount         float64 `json:"totalNetAmount"`
+}

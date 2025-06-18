@@ -8,6 +8,7 @@ import (
 	"github.com/V-enekoder/HiringGroup/src/company"
 	"github.com/V-enekoder/HiringGroup/src/contract"
 	"github.com/V-enekoder/HiringGroup/src/jobOffer"
+	"github.com/V-enekoder/HiringGroup/src/payment"
 	"github.com/V-enekoder/HiringGroup/src/postulation"
 	"github.com/V-enekoder/HiringGroup/src/role"
 	"github.com/V-enekoder/HiringGroup/src/user"
@@ -36,6 +37,7 @@ func main() {
 	company.RegisterRoutes(r)
 	contract.RegisterRoutes(r)
 	jobOffer.RegisterRoutes(r)
+	payment.RegisterRoutes(r)
 	postulation.RegisterRoutes(r)
 	r.Run()
 }
