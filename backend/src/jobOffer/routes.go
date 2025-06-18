@@ -1,0 +1,15 @@
+package jobOffer
+
+import "github.com/gin-gonic/gin"
+
+// RegisterRoutes registra los endpoints de joboffer en el router de Gin.
+func RegisterRoutes(router *gin.Engine) {
+	joboffers := router.Group("/joboffers")
+	{
+		joboffers.POST("/", CreateJobOfferController)
+		joboffers.GET("/", GetAllJobOffersController)
+		joboffers.GET("/:id", GetJobOfferByIDController)
+		joboffers.PUT("/:id", UpdateJobOfferController)
+		joboffers.DELETE("/:id", DeleteJobOfferController)
+	}
+}

@@ -171,7 +171,7 @@ type JobOffer struct {
 	Company      Company       `gorm:"foreignKey:CompanyID"`
 	Profession   Profession    `gorm:"foreignKey:ProfessionID"`
 	Zone         Zone          `gorm:"foreignKey:ZoneID"`
-	Postulations []Postulation `gorm:"foreignKey:JobID"`
+	Postulations []Postulation `gorm:"foreignKey:JobID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 func (JobOffer) TableName() string {
