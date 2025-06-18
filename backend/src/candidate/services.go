@@ -63,7 +63,6 @@ func CreateCandidateService(dto CandidateCreateDTO) (CandidateResponseDTO, error
 		return CandidateResponseDTO{}, err
 	}
 
-	// NOTA: Para obtener el nombre del rol, necesitaríamos buscarlo. Por simplicidad, lo hardcodeamos aquí.
 	response := CandidateResponseDTO{
 		ID:          newCandidate.ID,
 		Role:        newUser.Role.Name,

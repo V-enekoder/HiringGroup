@@ -12,6 +12,39 @@ type Role struct {
 	Users []User `gorm:"foreignKey:RoleID"`
 }
 
+type Zone struct {
+	ID   uint `gorm:"primaryKey"`
+	Name string
+	// Relaciones
+	JobOffers []JobOffer `gorm:"foreignKey:ZoneID"`
+}
+
+type Profession struct {
+	ID   uint `gorm:"primaryKey"`
+	Name string
+	// Relaciones
+	Curriculums []Curriculum `gorm:"foreignKey:ProfessionID"`
+	JobOffers   []JobOffer   `gorm:"foreignKey:ProfessionID"`
+}
+
+type ContractingPeriod struct {
+	ID   uint `gorm:"primaryKey"`
+	Name string
+	// Relaciones
+	Contracts []Contract `gorm:"foreignKey:PeriodID"`
+}
+
+func (ContractingPeriod) TableName() string {
+	return "contracting_period"
+}
+
+type Bank struct {
+	ID   uint `gorm:"primaryKey"`
+	Name string
+	// Relaciones
+	Candidates []*Candidate `gorm:"foreignKey:BankID"`
+}
+
 type User struct { //Actualizar email y contraseña en un solo endpoint
 	ID       uint `gorm:"primaryKey"`
 	RoleID   uint
@@ -54,7 +87,7 @@ type Company struct {
 	Address string
 	// Relaciones
 	User      User       `gorm:"foreignKey:UserID"`
-	JobOffers []JobOffer `gorm:"foreignKey:CompanyID"`
+	JobOffers []JobOffer `gorm:"foreignKey:CompanyID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 // Candidate representa la tabla "candidates"
@@ -125,14 +158,6 @@ type Curriculum struct {
 	LaboralExperiences []LaboralExperience `gorm:"foreignKey:CurriculumID"`
 }
 
-// Zone representa la tabla "zone"
-type Zone struct {
-	ID   uint `gorm:"primaryKey"`
-	Name string
-	// Relaciones
-	JobOffers []JobOffer `gorm:"foreignKey:ZoneID"`
-}
-
 type JobOffer struct {
 	ID           uint `gorm:"primaryKey"`
 	CompanyID    uint // Se asigna manualmente
@@ -165,23 +190,6 @@ type Postulation struct {
 	Contract  *Contract `gorm:"foreignKey:PostulationID"`
 }
 
-// Profession representa la tabla "professions"
-type Profession struct {
-	ID   uint `gorm:"primaryKey"`
-	Name string
-	// Relaciones
-	Curriculums []Curriculum `gorm:"foreignKey:ProfessionID"`
-	JobOffers   []JobOffer   `gorm:"foreignKey:ProfessionID"`
-}
-
-// Bank representa la tabla "banks"
-type Bank struct {
-	ID   uint `gorm:"primaryKey"`
-	Name string
-	// Relaciones
-	Candidates []*Candidate `gorm:"foreignKey:BankID"` // Un banco puede tener varios candidatos
-}
-
 // Contract representa la tabla "contracts"
 type Contract struct {
 	ID            uint `gorm:"primaryKey"`
@@ -206,16 +214,4 @@ type Payment struct {
 	NetAmount         float64   `gorm:"type:decimal(10,2)"`
 	// Relaciones
 	Contract Contract `gorm:"foreignKey:ContractID"`
-}
-
-// ContractingPeriod representa la tabla "contracting_period"
-type ContractingPeriod struct {
-	ID   uint `gorm:"primaryKey"`
-	Name string
-	// Relaciones
-	Contracts []Contract `gorm:"foreignKey:PeriodID"`
-}
-
-func (ContractingPeriod) TableName() string {
-	return "contracting_period"
 }

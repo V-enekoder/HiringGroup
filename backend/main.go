@@ -5,6 +5,7 @@ import (
 
 	"github.com/V-enekoder/HiringGroup/config"
 	"github.com/V-enekoder/HiringGroup/src/candidate"
+	"github.com/V-enekoder/HiringGroup/src/company"
 	"github.com/V-enekoder/HiringGroup/src/role"
 	"github.com/V-enekoder/HiringGroup/src/user"
 	"github.com/gin-contrib/cors"
@@ -29,6 +30,7 @@ func main() {
 	user.RegisterRoutes(r)
 	role.RegisterRoutes(r)
 	candidate.RegisterRoutes(r)
+	company.RegisterRoutes(r)
 
 	r.Run()
 }
