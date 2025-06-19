@@ -42,7 +42,8 @@ type Bank struct {
 	ID   uint `gorm:"primaryKey"`
 	Name string
 	// Relaciones
-	Candidates []*Candidate `gorm:"foreignKey:BankID"`
+
+	Contracts []*Contract `gorm:"foreignKey:BankID"`
 }
 
 type User struct { //Actualizar email y contraseña en un solo endpoint
@@ -100,16 +101,13 @@ type Candidate struct {
 	Document           string // Genera un número como de documento
 	BloodType          string
 	Address            string
-	BankAccount        string
 	PhoneNumber        string
 	DateOfBirth        time.Time
 	Hired              bool
 	// Relaciones
-	User             User              `gorm:"foreignKey:UserID"`
-	Bank             *Bank             `gorm:"foreignKey:BankID"`
-	EmergencyContact *EmergencyContact `gorm:"foreignKey:EmergencyContactID"`
-	Curriculum       *Curriculum       `gorm:"foreignKey:CandidateID"` // Un candidato TIENE UN curriculum
-	Postulations     []Postulation     `gorm:"foreignKey:CandidateID"`
+	User         User          `gorm:"foreignKey:UserID"`
+	Curriculum   *Curriculum   `gorm:"foreignKey:CandidateID"`
+	Postulations []Postulation `gorm:"foreignKey:CandidateID"`
 }
 
 // LaboralExperience representa la tabla "laboral_experiences"
@@ -130,13 +128,14 @@ func (LaboralExperience) TableName() string {
 }
 
 // EmergencyContact representa la tabla "emergency_contacts"
-type EmergencyContact struct {
-	ID          uint `gorm:"primaryKey"`
+type EmergencyContact struct { //Se necesita un odcument
+	ID          uint   `gorm:"primaryKey"`
+	Document    string `gorm:"uniqueIndex"`
 	Name        string
 	LastName    string
 	PhoneNumber string
 	// Relaciones
-	Candidates []*Candidate `gorm:"foreignKey:EmergencyContactID"` // Un contacto puede ser de varios candidatos (si se reutilizan)
+	Contracts []*Contract `gorm:"foreignKey:EmergencyContactID"`
 }
 
 func (EmergencyContact) TableName() string {
@@ -192,11 +191,16 @@ type Postulation struct {
 
 // Contract representa la tabla "contracts"
 type Contract struct {
-	ID            uint `gorm:"primaryKey"`
-	PostulationID uint `gorm:"uniqueIndex"`
-	PeriodID      uint // Clave foránea
-	Active        bool
+	ID                 uint `gorm:"primaryKey"`
+	BankID             uint // Clave foránea
+	EmergencyContactID uint // Clave foránea
+	PostulationID      uint `gorm:"uniqueIndex"`
+	PeriodID           uint // Clave foránea
+	BankAccount        string
+	Active             bool
 	// Relaciones
+	Bank              Bank              `gorm:"foreignKey:BankID"`
+	EmergencyContact  EmergencyContact  `gorm:"foreignKey:EmergencyContactID"`
 	Postulation       Postulation       `gorm:"foreignKey:PostulationID"`
 	ContractingPeriod ContractingPeriod `gorm:"foreignKey:PeriodID"`
 	Payments          []Payment         `gorm:"foreignKey:ContractID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`

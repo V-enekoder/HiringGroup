@@ -303,13 +303,12 @@ func SeedCandidates(db *gorm.DB) error {
 			candidate := schema.Candidate{
 				UserID:      user.ID,
 				LastName:    lastName,
-				Document:    fmt.Sprintf("%03d-%07d-%01d", i+1, rand.Intn(9000000)+1000000, i%10), // Documento único
+				Document:    fmt.Sprintf("%03d-%07d-%01d", i+1, rand.Intn(9000000)+1000000, i%10),
 				BloodType:   bloodTypes[i%len(bloodTypes)],
 				Address:     addresses[i%len(addresses)],
-				BankAccount: fmt.Sprintf("5555%012d", rand.Int63n(1e12)), // Número de cuenta de 16 dígitos
-				PhoneNumber: fmt.Sprintf("809-555-%04d", i+1000),         // Teléfono con formato
-				DateOfBirth: time.Now().AddDate(-20-i, -i, -i),           // Fechas de nacimiento distintas
-				Hired:       false,                                       // Por defecto es false
+				PhoneNumber: fmt.Sprintf("809-555-%04d", i+1000), // Teléfono con formato
+				DateOfBirth: time.Now().AddDate(-20-i, -i, -i),   // Fechas de nacimiento distintas
+				Hired:       false,                               // Por defecto es false
 			}
 
 			if err := tx.Create(&candidate).Error; err != nil {
@@ -509,38 +508,6 @@ func SeedEmergencyContacts(db *gorm.DB) error {
 		return errors.New("no se crearon contactos de emergencia durante el proceso de seeding")
 	}
 	log.Printf("Se crearon %d contactos de emergencia.", len(emergencyContacts))
-
-	// --- Paso 2: Vincular los contactos a los candidatos (ESTA LÓGICA NO CAMBIA) ---
-
-	var candidatesToUpdate []schema.Candidate
-	// Buscamos candidatos que aún no tengan un contacto de emergencia asignado.
-	if err := db.Where("emergency_contact_id IS NULL").Find(&candidatesToUpdate).Error; err != nil {
-		return fmt.Errorf("error al buscar candidatos sin contacto de emergencia: %w", err)
-	}
-
-	if len(candidatesToUpdate) == 0 {
-		log.Println("Todos los candidatos ya tienen un contacto de emergencia. No se necesita hacer nada.")
-		return nil
-	}
-
-	log.Printf("Vinculando contactos de emergencia a %d candidatos...", len(candidatesToUpdate))
-
-	// Usamos un índice aleatorio para que no siempre se asignen en el mismo orden
-	rand.Seed(time.Now().UnixNano())
-
-	for _, candidate := range candidatesToUpdate {
-		// Seleccionamos un contacto al azar de los que acabamos de crear
-		contactToAssign := emergencyContacts[rand.Intn(len(emergencyContacts))]
-
-		// Actualizamos solo el campo EmergencyContactID del candidato
-		result := db.Model(&candidate).Update("EmergencyContactID", contactToAssign.ID)
-
-		if result.Error != nil {
-			return fmt.Errorf("error al actualizar el candidato con ID %d para vincular el contacto de emergencia: %w", candidate.ID, result.Error)
-		}
-	}
-
-	log.Println("Seeding y vinculación de Contactos de Emergencia completado.")
 	return nil
 }
 
@@ -843,6 +810,20 @@ func SeedContracts(db *gorm.DB) error {
 		return nil // Es un estado válido, no un error.
 	}
 
+	var Banks []schema.Bank
+
+	err = db.Find(&Banks).Error
+	if err != nil {
+		return fmt.Errorf("error al buscar bancos disponibles: %w", err)
+	}
+
+	var Contacts []schema.EmergencyContact
+
+	err = db.Find(&Contacts).Error
+	if err != nil {
+		return fmt.Errorf("error al buscar bancos disponibles: %w", err)
+	}
+
 	log.Printf("Evaluando %d postulaciones para crear contratos (sin faker)...", len(availablePostulations))
 
 	// --- Paso 2: Preparar la lógica para evitar contrataciones duplicadas (LÓGICA ORIGINAL INTACTA) ---
@@ -869,14 +850,15 @@ func SeedContracts(db *gorm.DB) error {
 			continue
 		}
 
-		// --- Paso 3: Ejecutar la contratación dentro de una transacción ---
-		// Esto asegura que todas las actualizaciones se realicen o ninguna.
 		err := db.Transaction(func(tx *gorm.DB) error {
 			// 1. Crear el contrato (SIN FAKER)
 			contract := schema.Contract{
-				PostulationID: postulation.ID,
-				PeriodID:      periods[rand.Intn(len(periods))].ID,
-				Active:        true, // Un nuevo contrato se considera activo por defecto.
+				BankID:             Banks[rand.Intn(len(Banks))].ID,
+				EmergencyContactID: Contacts[rand.Intn(len(Contacts))].ID,
+				PostulationID:      postulation.ID,
+				PeriodID:           periods[rand.Intn(len(periods))].ID,
+				BankAccount:        fmt.Sprintf("5555%012d", rand.Int63n(1e12)), // Número de cuenta de 16 dígitos
+				Active:             true,                                        // Un nuevo contrato se considera activo por defecto.
 			}
 			if err := tx.Create(&contract).Error; err != nil {
 				return fmt.Errorf("error al crear el contrato: %w", err)
