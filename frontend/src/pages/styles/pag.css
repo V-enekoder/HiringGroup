@@ -1,0 +1,152 @@
+/* --- ESTILOS PARA LAS PÁGINAS--- */
+
+/* Contenedor principal de la página */
+.contenedorMain2 {
+  max-width: 1400px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin: 0 auto;
+  padding: 24px;
+  border-radius: 20px;
+  background-color: #f1f8fa;
+}
+
+/* Tarjeta base para una sección de contenido */
+.contenedorTarjeta {
+  border-radius: 16px;
+  padding: 24px;
+  background-color: #dcecf1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+}
+/* Efecto que se aplica al pasar el ratón sobre la tarjeta */
+.contenedorTarjeta:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(149, 157, 165, 0.2);
+}
+
+/* Texto del título dentro de una tarjeta de sección */
+.TextTarjeta {
+  color: #304b5a;
+  display: block;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+/* Tarjeta para un elemento individual en una lista (ej. experiencia) */
+.list-item-card {
+  background-color: #d6e8ee;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* --- Componentes Específicos (Ant Design) --- */
+
+/* Estilos para el cargador de avatar */
+.avatar-uploader > .ant-upload-select {
+  width: 150px !important;
+  height: 150px !important;
+}
+
+/* Estilo para las etiquetas de habilidades */
+.habilidad-tag {
+  font-size: 14px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background-color: #3f839b;
+  color: white;
+  border: none;
+  margin-bottom: 8px;
+}
+
+/* Icono de cierre en la etiqueta de habilidad */
+.habilidad-tag .ant-tag-close-icon {
+  color: #f1f8fa;
+  font-size: 12px;
+}
+
+/* Estado hover para el icono de cierre de la etiqueta */
+.habilidad-tag .ant-tag-close-icon:hover {
+  color: #ffffff;
+}
+
+
+/* --- Sección de Recibos --- */
+
+/* Grid para mostrar los recibos */
+.receipts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+  width: 100%;
+}
+
+/* Tarjeta individual para un recibo */
+.receipt-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 160px;
+  border-radius: 10px;
+  padding: 20px;
+  background-color: #dcecf1;
+  box-shadow: 0 4px 12px rgba(186, 196, 201, 0.15);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+/* Efecto hover para la tarjeta de recibo */
+.receipt-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(186, 196, 201, 0.2);
+}
+
+/* Mensaje cuando no se encuentran recibos */
+.no-receipts-found {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px;
+  background-color: #f9f9f9;
+  border: 1px dashed #ddd;
+  border-radius: 10px;
+}
+
+/* Grid para los recibos en formato de acordeón/colapsable */
+.receipts-grid-collapse {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+/* Estilo para cada item colapsable del recibo (Ant Collapse) */
+.receipts-grid-collapse .ant-collapse-item {
+  border-radius: 10px !important;
+  background-color: #dcecf1;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(186, 196, 201, 0.15);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+/* Efecto hover para el item colapsable */
+.receipts-grid-collapse .ant-collapse-item:hover {
+  transform: translateY(-5px);
+}
+
+/* Cabecera del panel colapsable */
+.receipts-grid-collapse .ant-collapse-header {
+  padding: 0 !important;
+  border-radius: 10px;
+}
+
+/* Contenido del panel colapsable */
+.receipts-grid-collapse .ant-collapse-content {
+  background-color: #d6e8ee;
+  border-top: 1px solid #c8dce4;
+  border-radius: 0 0 10px 10px;
+}
+

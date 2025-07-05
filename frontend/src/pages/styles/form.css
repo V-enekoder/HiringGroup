@@ -1,0 +1,121 @@
+/* --- Estilos de la Página de Login y Register--- */
+
+/* Contenedor principal de la página de login */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f1f8fa 0%, #e6f0f4 100%);
+    padding: 24px;
+}
+
+/* Tarjeta principal que contiene el formulario de login */
+.login-card {
+    width: 420px;
+    max-width: 100%;
+    box-shadow: 0 10px 30px rgba(0, 80, 115, 0.1);
+    border: none;
+    border-radius: 16px;
+    animation: fade-in-up 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+/* Efecto hover para la tarjeta de login */
+.login-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 80, 115, 0.15);
+}
+
+/* Estilo para el avatar de usuario en el login (Ant Design) */
+.login-avatar {
+    background-color: rgba(63, 131, 155, 0.1);
+    color: #3f839b;
+}
+
+
+/* --- Estilos de la Página de Registro --- */
+
+/* Contenedor principal de la página de registro */
+.register-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f1f8fa 0%, #e6f0f4 100%);
+    overflow: hidden;
+}
+
+/* Columna para las instrucciones en la página de registro */
+.register-instructions-col {
+    text-align: center;
+    animation: fade-in-left 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* Tarjeta que contiene el formulario de registro */
+.register-form-card {
+    box-shadow: 0 10px 30px rgba(0, 80, 115, 0.1);
+    border: none;
+    border-radius: 16px;
+    padding: 16px;
+    animation: fade-in-right 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+/* Efecto hover para la tarjeta de registro */
+.register-form-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 80, 115, 0.15);
+}
+
+/* Contenedor para el contenido del formulario (inputs, etc.) */
+.form-content {
+    margin-top: 2rem;
+    animation: fade-in-simple 0.5s ease-in-out;
+}
+
+
+/* --- Animaciones (Keyframes) --- */
+
+/* Animación de entrada: aparecer desde abajo */
+@keyframes fade-in-up {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animación de entrada: aparecer desde la izquierda */
+@keyframes fade-in-left {
+    0% {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Animación de entrada: aparecer desde la derecha */
+@keyframes fade-in-right {
+    0% {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Animación de entrada: desvanecimiento simple */
+@keyframes fade-in-simple {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
