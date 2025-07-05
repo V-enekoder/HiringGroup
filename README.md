@@ -18,10 +18,18 @@
 
 ## 🚀 Tecnologías
 
+*Backend* 
+
 * Go
 * Gin
 * GORM
 * PostgreSQL
+
+*Frontend*
+
+* React Vite
+* Ant Desing
+
 
 
 ### 🛠️ Makefile
@@ -37,7 +45,7 @@ Modo de Uso
 ```
 ---
 
-### ⚙️ Instalación
+### ⚙️ Instalación BACKEND
 
 
 1. Clonar el repositorio:
@@ -48,6 +56,7 @@ Modo de Uso
 2. Navegar al directorio del proyecto:
 ```sh
 ❯ cd HiringGroup
+❯ cd backend
 ```
 
 3. Instalar las dependencias del proyecto:
@@ -66,7 +75,7 @@ Modo de Uso
 
 ### 🤖 Uso &nbsp; [<img align="center" src="https://img.shields.io/badge/Go-00ADD8.svg?style={badge_style}&logo=go&logoColor=white" />](https://golang.org/)
 
-Pa ejecutar el programa se puede utilizar 
+Para ejecutar el programa se puede utilizar 
 
 ```sh
 ❯ go run main.go
@@ -74,4 +83,27 @@ Pa ejecutar el programa se puede utilizar
 o
 ```sh
 ❯ make run
+```
+
+### ⚙️ Instalación FRONTEND
+
+1. Navegar al directorio del proyecto:
+```sh
+❯ cd HiringGroup
+❯ cd frontend
+```
+
+2. Instalar las dependencias del proyecto:
+```sh
+  ❯ npm i
+```
+
+
+
+### 🤖 Uso   [<img align="center" src="https://img.shields.io/badge/React-61DAFB.svg?style=for-the-badge&logo=react&logoColor=white" />](https://react.dev/)
+
+Para ejecutar el programa se puede utilizar 
+
+```sh
+  ❯ npm run dev
 ```
