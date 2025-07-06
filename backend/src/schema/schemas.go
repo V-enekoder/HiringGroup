@@ -43,7 +43,7 @@ type Bank struct {
 	Name string
 	// Relaciones
 
-	Contracts []*Contract `gorm:"foreignKey:BankID"`
+	Candidates []*Candidate `gorm:"foreignKey:BankID"`
 }
 
 type User struct { //Actualizar email y contraseña en un solo endpoint
@@ -60,7 +60,6 @@ type User struct { //Actualizar email y contraseña en un solo endpoint
 	Candidate  *Candidate  `gorm:"foreignKey:UserID"`
 }
 
-// EmployeeHG representa la tabla "employeesHG"
 type EmployeeHG struct {
 	ID     uint `gorm:"primaryKey"`
 	UserID uint // Clave foránea
@@ -72,14 +71,12 @@ func (EmployeeHG) TableName() string {
 	return "employeesHG"
 }
 
-// Admin representa la tabla "admins"
 type Admin struct {
 	ID     uint `gorm:"primaryKey"`
 	UserID uint // Clave foránea
 	// Relaciones
 	User User `gorm:"foreignKey:UserID"`
 }
-
 type Company struct {
 	ID      uint `gorm:"primaryKey"`
 	UserID  uint
@@ -104,10 +101,13 @@ type Candidate struct {
 	PhoneNumber        string
 	DateOfBirth        time.Time
 	Hired              bool
+	BankAccount        string
 	// Relaciones
-	User         User          `gorm:"foreignKey:UserID"`
-	Curriculum   *Curriculum   `gorm:"foreignKey:CandidateID"`
-	Postulations []Postulation `gorm:"foreignKey:CandidateID"`
+	User             User              `gorm:"foreignKey:UserID"`
+	Curriculum       *Curriculum       `gorm:"foreignKey:CandidateID"`
+	Postulations     []Postulation     `gorm:"foreignKey:CandidateID"`
+	Bank             *Bank             `gorm:"foreignKey:BankID"`
+	EmergencyContact *EmergencyContact `gorm:"foreignKey:EmergencyContactID"`
 }
 
 // LaboralExperience representa la tabla "laboral_experiences"
@@ -117,8 +117,8 @@ type LaboralExperience struct {
 	Company      string
 	JobTitle     string
 	Description  string    `gorm:"type:text"`
-	Start        time.Time `gorm:"type:date"`
-	End          time.Time `gorm:"type:date"`
+	StartDate    time.Time `gorm:"type:date"`
+	EndDate      time.Time `gorm:"type:date"`
 	// Relaciones
 	Curriculum Curriculum `gorm:"foreignKey:CurriculumID"`
 }
@@ -127,15 +127,14 @@ func (LaboralExperience) TableName() string {
 	return "laboral_experiences"
 }
 
-// EmergencyContact representa la tabla "emergency_contacts"
-type EmergencyContact struct { //Se necesita un odcument
+type EmergencyContact struct {
 	ID          uint   `gorm:"primaryKey"`
 	Document    string `gorm:"uniqueIndex"`
 	Name        string
 	LastName    string
 	PhoneNumber string
 	// Relaciones
-	Contracts []*Contract `gorm:"foreignKey:EmergencyContactID"`
+	Candidates []*Candidate `gorm:"foreignKey:EmergencyContactID"`
 }
 
 func (EmergencyContact) TableName() string {
@@ -149,8 +148,9 @@ type Curriculum struct {
 	ProfessionID           uint // Clave foránea
 	Resume                 string
 	UniversityOfGraduation string
-	Skills                 string `gorm:"type:text"` // Corregido typo de "skils"
-	SpokenLanguages        string `gorm:"type:text"`
+	Skills                 string  `gorm:"type:text"`
+	SpokenLanguages        string  `gorm:"type:text"`
+	PhotoURL               *string `gorm:"column:photo_url;size:255"`
 	// Relaciones
 	Candidate          Candidate           `gorm:"foreignKey:CandidateID"`
 	Profession         Profession          `gorm:"foreignKey:ProfessionID"`
@@ -191,16 +191,11 @@ type Postulation struct {
 
 // Contract representa la tabla "contracts"
 type Contract struct {
-	ID                 uint `gorm:"primaryKey"`
-	BankID             uint // Clave foránea
-	EmergencyContactID uint // Clave foránea
-	PostulationID      uint `gorm:"uniqueIndex"`
-	PeriodID           uint // Clave foránea
-	BankAccount        string
-	Active             bool
+	ID            uint `gorm:"primaryKey"`
+	PostulationID uint `gorm:"uniqueIndex"`
+	PeriodID      uint // Clave foránea
+	Active        bool
 	// Relaciones
-	Bank              Bank              `gorm:"foreignKey:BankID"`
-	EmergencyContact  EmergencyContact  `gorm:"foreignKey:EmergencyContactID"`
 	Postulation       Postulation       `gorm:"foreignKey:PostulationID"`
 	ContractingPeriod ContractingPeriod `gorm:"foreignKey:PeriodID"`
 	Payments          []Payment         `gorm:"foreignKey:ContractID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`

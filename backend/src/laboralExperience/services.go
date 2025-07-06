@@ -25,11 +25,11 @@ func mapToExperienceResponseDTO(le schema.LaboralExperience) LaboralExperienceRe
 		Company:      le.Company,
 		JobTitle:     le.JobTitle,
 		Description:  le.Description,
-		StartDate:    le.Start.Format(timeLayout),
+		StartDate:    le.StartDate.Format(timeLayout),
 	}
 	// Solo incluir la fecha de fin si no es el valor cero de time.Time
-	if !le.End.IsZero() {
-		response.EndDate = le.End.Format(timeLayout)
+	if !le.EndDate.IsZero() {
+		response.EndDate = le.EndDate.Format(timeLayout)
 	}
 	return response
 }
@@ -72,8 +72,8 @@ func CreateExperienceService(dto LaboralExperienceCreateDTO) (LaboralExperienceR
 		Company:      dto.Company,
 		JobTitle:     dto.JobTitle,
 		Description:  dto.Description,
-		Start:        startDate,
-		End:          endDate,
+		StartDate:    startDate,
+		EndDate:      endDate,
 	}
 
 	if err := CreateExperienceRepository(&newExperience); err != nil {

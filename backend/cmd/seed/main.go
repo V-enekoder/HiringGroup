@@ -250,8 +250,6 @@ func hashPassword(password string) (string, error) {
 }
 
 func SeedCandidates(db *gorm.DB) error {
-	// --- 1. Preparación de Datos Manuales ---
-	// En lugar de faker, usamos slices de datos predefinidos para tener control.
 	firstNames := []string{"Ana", "Carlos", "Beatriz", "David", "Elena", "Fernando", "Gabriela", "Hugo", "Isabel", "Javier"}
 	lastNames := []string{"García", "Rodríguez", "Martínez", "Hernández", "López", "González", "Pérez", "Sánchez", "Ramírez", "Torres"}
 	bloodTypes := []string{"A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"}
@@ -268,7 +266,6 @@ func SeedCandidates(db *gorm.DB) error {
 		"Calle Larios 10, Málaga",
 	}
 
-	// --- 2. Lógica del Seeder (similar a la original) ---
 	count := 10
 	var candidateRole schema.Role
 	if err := db.First(&candidateRole, "name = ?", "Candidate").Error; err != nil {
@@ -280,12 +277,25 @@ func SeedCandidates(db *gorm.DB) error {
 		return err
 	}
 
+	var Banks []schema.Bank
+
+	err = db.Find(&Banks).Error
+	if err != nil {
+		return fmt.Errorf("error al buscar bancos disponibles: %w", err)
+	}
+
+	var Contacts []schema.EmergencyContact
+
+	err = db.Find(&Contacts).Error
+	if err != nil {
+		return fmt.Errorf("error al buscar bancos disponibles: %w", err)
+	}
+
 	log.Printf("Creando %d usuarios de tipo Candidato (sin faker)...", count)
 	for i := 0; i < count; i++ {
 		err := db.Transaction(func(tx *gorm.DB) error {
 			firstName := firstNames[i%len(firstNames)]
 			lastName := lastNames[i%len(lastNames)]
-			// Creamos un email único y predecible.
 			email := fmt.Sprintf("%s.%s%d@example.com", strings.ToLower(firstName), strings.ToLower(lastName), i)
 
 			user := schema.User{
@@ -298,10 +308,9 @@ func SeedCandidates(db *gorm.DB) error {
 				return fmt.Errorf("error al crear el usuario base: %w", err)
 			}
 
-			// --- 4. Generación de datos del Candidato ---
-			// Generamos datos con formato específico usando fmt.Sprintf y time.
 			candidate := schema.Candidate{
 				UserID:      user.ID,
+				BankID:      &Banks[rand.Intn(len(Banks))].ID,
 				LastName:    lastName,
 				Document:    fmt.Sprintf("%03d-%07d-%01d", i+1, rand.Intn(9000000)+1000000, i%10),
 				BloodType:   bloodTypes[i%len(bloodTypes)],
@@ -309,6 +318,7 @@ func SeedCandidates(db *gorm.DB) error {
 				PhoneNumber: fmt.Sprintf("809-555-%04d", i+1000), // Teléfono con formato
 				DateOfBirth: time.Now().AddDate(-20-i, -i, -i),   // Fechas de nacimiento distintas
 				Hired:       false,                               // Por defecto es false
+				BankAccount: fmt.Sprintf("5555%012d", rand.Int63n(1e12)),
 			}
 
 			if err := tx.Create(&candidate).Error; err != nil {
@@ -491,6 +501,8 @@ func SeedEmergencyContacts(db *gorm.DB) error {
 	// Iteramos sobre nuestra lista de datos predefinidos
 	for i, data := range contactData {
 		contact := schema.EmergencyContact{
+			ID:       uint(i + 1),                 // Asignamos un ID predecible basado en el índice
+			Document: fmt.Sprintf("EM-%04d", i+1), // Documento único para cada contacto
 			Name:     data.Name,
 			LastName: data.LastName,
 			// Generamos un número de teléfono con formato, pero predecible/único
@@ -619,8 +631,8 @@ func SeedLaboralExperiences(db *gorm.DB) error {
 				Company:      companyName, // Usamos el nombre de nuestra lista
 				JobTitle:     jobTitle,
 				Description:  "Responsable de tareas clave relacionadas con " + curriculum.Profession.Name + ". Logré mejorar la eficiencia del equipo en un 15%.",
-				Start:        startDate,
-				End:          lastEndDate,
+				StartDate:    startDate,
+				EndDate:      lastEndDate,
 			}
 
 			if err := db.Create(&experience).Error; err != nil {
@@ -810,20 +822,6 @@ func SeedContracts(db *gorm.DB) error {
 		return nil // Es un estado válido, no un error.
 	}
 
-	var Banks []schema.Bank
-
-	err = db.Find(&Banks).Error
-	if err != nil {
-		return fmt.Errorf("error al buscar bancos disponibles: %w", err)
-	}
-
-	var Contacts []schema.EmergencyContact
-
-	err = db.Find(&Contacts).Error
-	if err != nil {
-		return fmt.Errorf("error al buscar bancos disponibles: %w", err)
-	}
-
 	log.Printf("Evaluando %d postulaciones para crear contratos (sin faker)...", len(availablePostulations))
 
 	// --- Paso 2: Preparar la lógica para evitar contrataciones duplicadas (LÓGICA ORIGINAL INTACTA) ---
@@ -853,12 +851,9 @@ func SeedContracts(db *gorm.DB) error {
 		err := db.Transaction(func(tx *gorm.DB) error {
 			// 1. Crear el contrato (SIN FAKER)
 			contract := schema.Contract{
-				BankID:             Banks[rand.Intn(len(Banks))].ID,
-				EmergencyContactID: Contacts[rand.Intn(len(Contacts))].ID,
-				PostulationID:      postulation.ID,
-				PeriodID:           periods[rand.Intn(len(periods))].ID,
-				BankAccount:        fmt.Sprintf("5555%012d", rand.Int63n(1e12)), // Número de cuenta de 16 dígitos
-				Active:             true,                                        // Un nuevo contrato se considera activo por defecto.
+				PostulationID: postulation.ID,
+				PeriodID:      periods[rand.Intn(len(periods))].ID, // Número de cuenta de 16 dígitos
+				Active:        true,                                // Un nuevo contrato se considera activo por defecto.
 			}
 			if err := tx.Create(&contract).Error; err != nil {
 				return fmt.Errorf("error al crear el contrato: %w", err)

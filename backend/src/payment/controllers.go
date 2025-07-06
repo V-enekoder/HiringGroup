@@ -24,6 +24,17 @@ func CreatePaymentController(c *gin.Context) {
 	c.JSON(http.StatusCreated, response)
 }
 
+// Preparación de nomina. La empresa muestra a quienes les pagará ese mes.
+/*
+Preparación de nómina mensual por cada empresa: en esta sección se emite un
+reporte dado la empresa, el mes y año correspondiente a la nómina
+En este reporte
+debe aparecer los datos básicos de empleados involucrados en dicha nómina, así como
+el salario a devengar por el trabajador. Además de puede solicitar un reporte donde
+aparezca toda la nómina a cancelar ordenada por empresas.
+ Pago de nomina
+*/
+
 // GetAllPaymentsController maneja la petición para obtener todos los pagos.
 func GetAllPaymentsController(c *gin.Context) {
 	payments, err := GetAllPaymentsService()

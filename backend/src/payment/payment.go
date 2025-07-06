@@ -17,7 +17,8 @@ type PaymentResponseDTO struct {
 	SocialSecurityFee float64   `json:"socialSecurityFee"`
 	NetAmount         float64   `json:"netAmount"` // Salario Neto
 	// Datos de contexto para el frontend
-	CandidateName    string `json:"candidateName"`
-	JobOfferPosition string `json:"jobOfferPosition"`
-	CompanyName      string `json:"companyName"`
+	CandidateName     string `json:"candidateName"`
+	CandidateLastName string `json:"candidateLastName"`
+	JobOfferPosition  string `json:"jobOfferPosition"`
+	CompanyName       string `json:"companyName"`
 }
