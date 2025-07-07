@@ -117,8 +117,8 @@ func UpdateExperienceService(id uint, dto LaboralExperienceUpdateDTO) (LaboralEx
 		"company":     dto.Company,
 		"job_title":   dto.JobTitle,
 		"description": dto.Description,
-		"start":       startDate,
-		"end":         endDate,
+		"start_date":  startDate,
+		"end_date":    endDate,
 	}
 
 	if err := UpdateExperienceRepository(id, updateData); err != nil {

@@ -54,19 +54,21 @@ func CreateCandidateService(dto CandidateCreateDTO) (CandidateResponseDTO, error
 		return CandidateResponseDTO{}, err
 	}
 
-	if err := CreateCandidateRepository(tx, &newUser, &newCandidate); err != nil {
+	c, err := CreateCandidateRepository(&newUser, &newCandidate)
+	if err != nil {
 		tx.Rollback()
 		return CandidateResponseDTO{}, fmt.Errorf("could not create candidate: %w", err)
 	}
 
-	if err := tx.Commit().Error; err != nil {
+	/*if err := tx.Commit().Error; err != nil {
 		return CandidateResponseDTO{}, err
-	}
+	}*/
 
 	response := CandidateResponseDTO{
-		ID:          newCandidate.ID,
-		Role:        newUser.Role.Name,
-		Name:        newUser.Name,
+		ID:   newCandidate.ID,
+		Role: c.User.Role.Name, // Asumimos que el rol ya está precargado en la consulta
+		Name: newUser.Name,
+
 		Email:       newUser.Email,
 		LastName:    newCandidate.LastName,
 		Document:    newCandidate.Document,

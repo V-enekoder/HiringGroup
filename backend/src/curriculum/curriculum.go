@@ -35,8 +35,7 @@ type CurriculumUpdateDTO struct {
 type CurriculumResponseDTO struct {
 	ID                     uint                           `json:"id"`
 	CandidateID            uint                           `json:"candidate_id"`
-	CandidateName          string                         `json:"candidate_name"` // Dato enriquecido
-	ProfessionID           uint                           `json:"profession_id"`
+	CandidateName          string                         `json:"candidate_name"`
 	ProfessionName         string                         `json:"profession_name"` // Dato enriquecido
 	Resume                 string                         `json:"resume"`
 	UniversityOfGraduation string                         `json:"university_of_graduation"`

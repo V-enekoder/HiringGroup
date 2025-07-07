@@ -6,7 +6,7 @@ func RegisterRoutes(router *gin.Engine) {
 
 	candidates := router.Group("/candidates")
 	{
-		candidates.POST("/", CreateCandidateController)
+		candidates.POST("/", CreateCandidateController) //No aparece le nombre del rol
 		candidates.GET("/", GetAllCandidatesController)
 		candidates.GET("/:id", GetCandidateByIDController)
 		candidates.PUT("/:id", UpdateCandidateController)

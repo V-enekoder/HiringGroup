@@ -32,9 +32,8 @@ func mapToCurriculumResponseDTO(cv schema.Curriculum) CurriculumResponseDTO {
 	return CurriculumResponseDTO{
 		ID:                     cv.ID,
 		CandidateID:            cv.CandidateID,
-		CandidateName:          cv.Candidate.User.Name, // Acceso a través de las relaciones
-		ProfessionID:           cv.ProfessionID,
-		ProfessionName:         cv.Profession.Name, // Acceso a través de las relaciones
+		CandidateName:          cv.Candidate.User.Name + " " + cv.Candidate.LastName, // Acceso a través de las relaciones
+		ProfessionName:         cv.Profession.Name,                                   // Acceso a través de las relaciones
 		Resume:                 cv.Resume,
 		UniversityOfGraduation: cv.UniversityOfGraduation,
 		Skills:                 cv.Skills,
