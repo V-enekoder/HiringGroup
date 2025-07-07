@@ -2,6 +2,7 @@ package emergencycontact
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -23,6 +24,7 @@ func CreateContactController(c *gin.Context) {
 			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 			return
 		}
+		log.Printf("Error desde el servicio: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create emergency contact"})
 		return
 	}

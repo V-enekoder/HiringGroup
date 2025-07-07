@@ -18,21 +18,20 @@ func mapToContactResponseDTO(c schema.EmergencyContact) EmergencyContactResponse
 	return EmergencyContactResponseDTO{
 		ID:          c.ID,
 		Document:    c.Document,
-		Name:        c.Name,
-		LastName:    c.LastName,
+		Name:        c.Name + " " + c.LastName,
 		PhoneNumber: c.PhoneNumber,
 	}
 }
 
 // CreateContactService maneja la creación de un nuevo contacto de emergencia.
 func CreateContactService(dto EmergencyContactCreateDTO) (EmergencyContactResponseDTO, error) {
-	exists, err := ContactExistsByDocumentRepository(dto.Document)
+	/*exists, err := ContactExistsByDocumentRepository(dto.Document)
 	if err != nil {
 		return EmergencyContactResponseDTO{}, err
 	}
 	if exists {
 		return EmergencyContactResponseDTO{}, ErrDocumentExists
-	}
+	}*/
 
 	newContact := schema.EmergencyContact{
 		Document:    dto.Document,

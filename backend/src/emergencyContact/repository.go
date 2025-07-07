@@ -2,6 +2,7 @@ package emergencycontact
 
 import (
 	"errors"
+	"log"
 
 	"github.com/V-enekoder/HiringGroup/config"
 	"github.com/V-enekoder/HiringGroup/src/schema"
@@ -39,6 +40,7 @@ func DocumentExistsOnOtherContact(id uint, document string) (bool, error) {
 // CreateContactRepository crea un nuevo registro de contacto.
 func CreateContactRepository(c *schema.EmergencyContact) error {
 	db := config.DB
+	log.Printf("Intentando crear contacto con ID: %d, Documento: %s\n", c.ID, c.Document)
 	return db.Create(c).Error
 }
 
@@ -77,7 +79,7 @@ func DeleteContactRepository(id uint) error {
 	return db.Transaction(func(tx *gorm.DB) error {
 		// 1. Verificar si el contacto está asociado a algún contrato.
 		var count int64
-		if err := tx.Model(&schema.Contract{}).Where("emergency_contact_id = ?", id).Count(&count).Error; err != nil {
+		if err := tx.Model(&schema.Contract{}).Where("id = ?", id).Count(&count).Error; err != nil {
 			return err
 		}
 		if count > 0 {
@@ -87,6 +89,7 @@ func DeleteContactRepository(id uint) error {
 		// 2. Si no hay dependencias, proceder con la eliminación.
 		result := tx.Delete(&schema.EmergencyContact{}, id)
 		if result.Error != nil {
+			log.Printf("Error al eliminar contacto con ID %d: %v\n", id, result.Error)
 			return result.Error
 		}
 		if result.RowsAffected == 0 {
