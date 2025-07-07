@@ -9,8 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// CreateEmployeeHGController maneja la petición para crear un nuevo Empleado de HG.
-// Esto crea tanto un User como un EmployeeHG.
 func CreateEmployeeHGController(c *gin.Context) {
 	var dto EmployeeHGCreateDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {

@@ -19,14 +19,12 @@ func mapToEmployeeHGResponseDTO(e schema.EmployeeHG) EmployeeHGResponseDTO {
 		UserID: e.UserID,
 		Name:   e.User.Name,
 		Email:  e.User.Email,
-		RoleID: e.User.RoleID,
+		Role:   e.User.Role.Name,
 	}
 }
 
 // CreateEmployeeHGService maneja la lógica para crear un User y un EmployeeHG.
 func CreateEmployeeHGService(dto EmployeeHGCreateDTO) (EmployeeHGResponseDTO, error) {
-	// Primero, verificar si el email ya está en uso por cualquier usuario.
-	// Esta función viviría en un paquete 'user' o ser genérica.
 	exists, err := UserEmailExistsRepository(dto.Email)
 	if err != nil {
 		return EmployeeHGResponseDTO{}, err

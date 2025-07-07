@@ -2,6 +2,7 @@ package employeehg
 
 import (
 	"errors"
+
 	"github.com/V-enekoder/HiringGroup/config"
 	"github.com/V-enekoder/HiringGroup/src/schema"
 	"gorm.io/gorm"
@@ -46,8 +47,11 @@ func CreateEmployeeHGRepository(user *schema.User) (schema.EmployeeHG, error) {
 		return schema.EmployeeHG{}, err
 	}
 
-	// Cargar el usuario para la respuesta
-	employee.User = *user
+	if err := db.Preload("User.Role").First(&employee, employee.ID).Error; err != nil {
+		// Este error sería muy raro (no encontrar un registro que acabas de crear), pero es bueno manejarlo.
+		return schema.EmployeeHG{}, err
+	}
+
 	return employee, nil
 }
 
@@ -55,7 +59,7 @@ func CreateEmployeeHGRepository(user *schema.User) (schema.EmployeeHG, error) {
 func GetAllEmployeesHGRepository() ([]schema.EmployeeHG, error) {
 	var employees []schema.EmployeeHG
 	db := config.DB
-	err := db.Preload("User").Find(&employees).Error
+	err := db.Preload("User.Role").Find(&employees).Error
 	return employees, err
 }
 
@@ -63,7 +67,7 @@ func GetAllEmployeesHGRepository() ([]schema.EmployeeHG, error) {
 func GetEmployeeHGByIDRepository(id uint) (schema.EmployeeHG, error) {
 	var employee schema.EmployeeHG
 	db := config.DB
-	err := db.Preload("User").First(&employee, id).Error
+	err := db.Preload("User.Role").First(&employee, id).Error
 	return employee, err
 }
 

@@ -63,7 +63,6 @@ func GetPaymentSummaryController(c *gin.Context) {
 
 	summary, err := GetPaymentSummaryService(uint(id))
 	if err != nil {
-		// El servicio devolverá un error si el contrato no se encuentra
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}

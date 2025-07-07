@@ -7,9 +7,9 @@ func RegisterRoutes(router *gin.Engine) {
 	// Usamos un nombre de ruta descriptivo como "employees-hg"
 	employees := router.Group("/employees-hg")
 	{
-		employees.POST("/", CreateEmployeeHGController)
-		employees.GET("/", GetAllEmployeesHGController)
-		employees.GET("/:id", GetEmployeeHGByIDController)
+		employees.POST("/", CreateEmployeeHGController)    //Devolver nombre del rol
+		employees.GET("/", GetAllEmployeesHGController)    //Devolver nombre del rol
+		employees.GET("/:id", GetEmployeeHGByIDController) //Devolver nombre del rol
 		employees.PUT("/:id", UpdateEmployeeHGController)
 		employees.DELETE("/:id", DeleteEmployeeHGController)
 	}

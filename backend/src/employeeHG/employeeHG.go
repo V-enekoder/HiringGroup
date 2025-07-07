@@ -22,5 +22,5 @@ type EmployeeHGResponseDTO struct {
 	UserID uint   `json:"user_id"` // ID del User
 	Name   string `json:"name"`
 	Email  string `json:"email"`
-	RoleID uint   `json:"role_id"`
+	Role   string `json:"role"`
 }
