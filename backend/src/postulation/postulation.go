@@ -15,7 +15,6 @@ type PostulationResponseDTO struct {
 	CandidateID         uint    `json:"candidateId"`
 	CandidateName       string  `json:"candidateName"`
 	CandidateEmail      string  `json:"candidateEmail"`
-	JobID               uint    `json:"jobId"`
 	JobOfferPosition    string  `json:"jobOfferPosition"`
 	JobOfferSalary      float64 `json:"jobOfferSalary"`
 	JobOfferCompanyName string  `json:"jobOfferCompanyName"`

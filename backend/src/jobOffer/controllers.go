@@ -22,15 +22,31 @@ func CreateJobOfferController(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, response)
 }
-
-func GetAllJobOffersController(c *gin.Context) {
-	jobOffers, err := GetAllJobOffersService()
+func GetAllActiveJobOffersController(c *gin.Context) {
+	jobOffers, err := GetAllActiveJobOffersService()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, jobOffers)
+}
+
+func GetActiveJobOffersController(c *gin.Context) {
+	jobOffers, err := GetAllJobOffersService()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var activeJobOffers []JobOfferResponseDTO
+	for _, offer := range jobOffers {
+		if offer.Active {
+			activeJobOffers = append(activeJobOffers, offer)
+		}
+	}
+
+	c.JSON(http.StatusOK, activeJobOffers)
 }
 
 func GetJobOfferByIDController(c *gin.Context) {

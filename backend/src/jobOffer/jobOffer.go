@@ -22,9 +22,7 @@ type JobOfferResponseDTO struct {
 	ID             uint    `json:"id"`
 	CompanyID      uint    `json:"companyId"`
 	CompanyName    string  `json:"companyName"`
-	ProfessionID   uint    `json:"professionId"`
 	ProfessionName string  `json:"professionName"`
-	ZoneID         uint    `json:"zoneId"`
 	ZoneName       string  `json:"zoneName"`
 	Active         bool    `json:"active"`
 	Description    string  `json:"description"`

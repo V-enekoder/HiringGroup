@@ -11,10 +11,8 @@ func mapToResponseDTO(offer schema.JobOffer) JobOfferResponseDTO {
 	return JobOfferResponseDTO{
 		ID:             offer.ID,
 		CompanyID:      offer.CompanyID,
-		CompanyName:    offer.Company.Name, // Asume que Company fue precargada
-		ProfessionID:   offer.ProfessionID,
-		ProfessionName: offer.Profession.Name, // Asume que Profession fue precargada
-		ZoneID:         offer.ZoneID,
+		CompanyName:    offer.Company.Name,
+		ProfessionName: offer.Profession.Name,
 		ZoneName:       offer.Zone.Name, // Asume que Zone fue precargada
 		Active:         offer.Active,
 		Description:    offer.Description,
@@ -48,6 +46,19 @@ func CreateJobOfferService(dto JobOfferCreateDTO) (JobOfferResponseDTO, error) {
 
 func GetAllJobOffersService() ([]JobOfferResponseDTO, error) {
 	jobOffers, err := GetAllJobOffersRepository()
+	if err != nil {
+		return nil, err
+	}
+
+	var responseDTOs []JobOfferResponseDTO
+	for _, offer := range jobOffers {
+		responseDTOs = append(responseDTOs, mapToResponseDTO(offer))
+	}
+	return responseDTOs, nil
+}
+
+func GetAllActiveJobOffersService() ([]JobOfferResponseDTO, error) {
+	jobOffers, err := GetAllActiveJobOffersRepository()
 	if err != nil {
 		return nil, err
 	}

@@ -18,6 +18,18 @@ func GetAllJobOffersRepository() ([]schema.JobOffer, error) {
 	return jobOffers, err
 }
 
+func GetAllActiveJobOffersRepository() ([]schema.JobOffer, error) {
+	var jobOffers []schema.JobOffer
+	db := config.DB
+	err := db.Preload("Company").
+		Preload("Profession").
+		Preload("Zone").
+		Where("active = ?", true).
+		Find(&jobOffers).Error
+
+	return jobOffers, err
+}
+
 func GetJobOfferByIDRepository(id uint) (schema.JobOffer, error) {
 	var jobOffer schema.JobOffer
 	db := config.DB
