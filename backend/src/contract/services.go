@@ -14,7 +14,6 @@ func mapToResponseDTO(c schema.Contract) ContractResponseDTO {
 		ID:               c.ID,
 		Active:           c.Active,
 		PostulationID:    c.PostulationID,
-		PeriodID:         c.PeriodID,
 		PeriodName:       c.ContractingPeriod.Name,
 		CandidateName:    c.Postulation.Candidate.User.Name + " " + c.Postulation.Candidate.LastName,
 		CandidateEmail:   c.Postulation.Candidate.User.Email,

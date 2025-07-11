@@ -43,14 +43,14 @@ func GetAllContactsController(c *gin.Context) {
 }
 
 // GetContactByIDController maneja la obtención de un contacto por ID.
-func GetContactByIDController(c *gin.Context) {
+func GetContactByCandidateIDController(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
 		return
 	}
 
-	contact, err := GetContactByIDService(uint(id))
+	contact, err := GetContactByCandidateIDService(uint(id))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Emergency contact not found"})

@@ -90,24 +90,23 @@ type Company struct {
 
 // Candidate representa la tabla "candidates"
 type Candidate struct {
-	ID                 uint  `gorm:"primaryKey"`
-	BankID             *uint // Nullable, se quedará en nil
-	EmergencyContactID *uint // Nullable, se quedará en nil
-	UserID             uint
-	LastName           string `gorm:"size:255;not null"`
-	Document           string // Genera un número como de documento
-	BloodType          string
-	Address            string
-	PhoneNumber        string
-	DateOfBirth        time.Time
-	Hired              bool
-	BankAccount        string
+	ID          uint  `gorm:"primaryKey"`
+	BankID      *uint // Nullable, se quedará en nil
+	UserID      uint
+	LastName    string `gorm:"size:255;not null"`
+	Document    string // Genera un número como de documento
+	BloodType   string
+	Address     string
+	PhoneNumber string
+	DateOfBirth time.Time
+	Hired       bool
+	BankAccount string
 	// Relaciones
 	User             User              `gorm:"foreignKey:UserID"`
 	Curriculum       *Curriculum       `gorm:"foreignKey:CandidateID"`
 	Postulations     []Postulation     `gorm:"foreignKey:CandidateID"`
 	Bank             *Bank             `gorm:"foreignKey:BankID"`
-	EmergencyContact *EmergencyContact `gorm:"foreignKey:EmergencyContactID"`
+	EmergencyContact *EmergencyContact `gorm:"foreignKey:CandidateID"`
 }
 
 // LaboralExperience representa la tabla "laboral_experiences"
@@ -128,13 +127,13 @@ func (LaboralExperience) TableName() string {
 }
 
 type EmergencyContact struct {
-	ID          uint   `gorm:"primaryKey"`
-	Document    string `gorm:"uniqueIndex"`
+	ID          uint `gorm:"primaryKey"`
+	CandidateID uint // Clave foránea
 	Name        string
 	LastName    string
 	PhoneNumber string
 	// Relaciones
-	Candidates []*Candidate `gorm:"foreignKey:EmergencyContactID"`
+	Candidate Candidate `gorm:"foreignKey:CandidateID"`
 }
 
 func (EmergencyContact) TableName() string {

@@ -2,7 +2,7 @@ package emergencycontact
 
 // EmergencyContactCreateDTO define la estructura para crear un nuevo contacto de emergencia.
 type EmergencyContactCreateDTO struct {
-	Document    string `json:"document" binding:"required"`
+	CandidateID uint   `json:"candidate_id" binding:"required"`
 	Name        string `json:"name" binding:"required"`
 	LastName    string `json:"last_name" binding:"required"`
 	PhoneNumber string `json:"phone_number" binding:"required"`
@@ -10,7 +10,6 @@ type EmergencyContactCreateDTO struct {
 
 // EmergencyContactUpdateDTO define la estructura para actualizar un contacto de emergencia.
 type EmergencyContactUpdateDTO struct {
-	Document    string `json:"document" binding:"required"`
 	Name        string `json:"name" binding:"required"`
 	LastName    string `json:"last_name" binding:"required"`
 	PhoneNumber string `json:"phone_number" binding:"required"`
@@ -18,7 +17,7 @@ type EmergencyContactUpdateDTO struct {
 
 type EmergencyContactResponseDTO struct {
 	ID          uint   `json:"id"`
-	Document    string `json:"document"`
+	CandidateID uint   `json:"candidate_id"`
 	Name        string `json:"name"`
 	PhoneNumber string `json:"phone_number"`
 }

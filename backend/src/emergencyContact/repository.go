@@ -1,7 +1,6 @@
 package emergencycontact
 
 import (
-	"errors"
 	"log"
 
 	"github.com/V-enekoder/HiringGroup/config"
@@ -9,38 +8,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// ContactExistsByDocumentRepository verifica si ya existe un contacto con un documento específico.
-func ContactExistsByDocumentRepository(document string) (bool, error) {
-	var contact schema.EmergencyContact
-	db := config.DB
-	err := db.Where("document = ?", document).First(&contact).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false, nil
-		}
-		return false, err
-	}
-	return true, nil
-}
-
-// DocumentExistsOnOtherContact verifica si un documento ya está en uso por otro contacto.
-func DocumentExistsOnOtherContact(id uint, document string) (bool, error) {
-	var contact schema.EmergencyContact
-	db := config.DB
-	err := db.Where("document = ? AND id != ?", document, id).First(&contact).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false, nil
-		}
-		return false, err
-	}
-	return true, nil
-}
-
 // CreateContactRepository crea un nuevo registro de contacto.
 func CreateContactRepository(c *schema.EmergencyContact) error {
 	db := config.DB
-	log.Printf("Intentando crear contacto con ID: %d, Documento: %s\n", c.ID, c.Document)
+	log.Printf("Intentando crear contacto con ID: %d\n", c.ID)
 	return db.Create(c).Error
 }
 
@@ -52,7 +23,15 @@ func GetAllContactsRepository() ([]schema.EmergencyContact, error) {
 	return contacts, err
 }
 
-// GetContactByIDRepository obtiene un contacto por su ID.
+func GetContactByCandidateIDRepository(candidateID uint) (schema.EmergencyContact, error) {
+	var contact schema.EmergencyContact
+	db := config.DB
+
+	err := db.Where("candidate_id = ?", candidateID).First(&contact).Error
+
+	return contact, err
+}
+
 func GetContactByIDRepository(id uint) (schema.EmergencyContact, error) {
 	var contact schema.EmergencyContact
 	db := config.DB

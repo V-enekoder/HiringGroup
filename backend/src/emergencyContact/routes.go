@@ -8,7 +8,7 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		contacts.POST("/", CreateContactController)
 		contacts.GET("/", GetAllContactsController)
-		contacts.GET("/:id", GetContactByIDController)
+		contacts.GET("/:id", GetContactByCandidateIDController)
 		contacts.PUT("/:id", UpdateContactController)
 		contacts.DELETE("/:id", DeleteContactController)
 	}

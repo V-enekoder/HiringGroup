@@ -17,7 +17,7 @@ var (
 func mapToContactResponseDTO(c schema.EmergencyContact) EmergencyContactResponseDTO {
 	return EmergencyContactResponseDTO{
 		ID:          c.ID,
-		Document:    c.Document,
+		CandidateID: c.CandidateID,
 		Name:        c.Name + " " + c.LastName,
 		PhoneNumber: c.PhoneNumber,
 	}
@@ -25,16 +25,9 @@ func mapToContactResponseDTO(c schema.EmergencyContact) EmergencyContactResponse
 
 // CreateContactService maneja la creación de un nuevo contacto de emergencia.
 func CreateContactService(dto EmergencyContactCreateDTO) (EmergencyContactResponseDTO, error) {
-	/*exists, err := ContactExistsByDocumentRepository(dto.Document)
-	if err != nil {
-		return EmergencyContactResponseDTO{}, err
-	}
-	if exists {
-		return EmergencyContactResponseDTO{}, ErrDocumentExists
-	}*/
 
 	newContact := schema.EmergencyContact{
-		Document:    dto.Document,
+		CandidateID: dto.CandidateID,
 		Name:        dto.Name,
 		LastName:    dto.LastName,
 		PhoneNumber: dto.PhoneNumber,
@@ -62,6 +55,14 @@ func GetAllContactsService() ([]EmergencyContactResponseDTO, error) {
 }
 
 // GetContactByIDService recupera un contacto por su ID.
+func GetContactByCandidateIDService(id uint) (EmergencyContactResponseDTO, error) {
+	contact, err := GetContactByCandidateIDRepository(id)
+	if err != nil {
+		return EmergencyContactResponseDTO{}, err
+	}
+	return mapToContactResponseDTO(contact), nil
+}
+
 func GetContactByIDService(id uint) (EmergencyContactResponseDTO, error) {
 	contact, err := GetContactByIDRepository(id)
 	if err != nil {
@@ -72,17 +73,8 @@ func GetContactByIDService(id uint) (EmergencyContactResponseDTO, error) {
 
 // UpdateContactService maneja la actualización de un contacto de emergencia.
 func UpdateContactService(id uint, dto EmergencyContactUpdateDTO) (EmergencyContactResponseDTO, error) {
-	// Verificar que el nuevo documento no esté en uso por OTRO contacto.
-	exists, err := DocumentExistsOnOtherContact(id, dto.Document)
-	if err != nil {
-		return EmergencyContactResponseDTO{}, err
-	}
-	if exists {
-		return EmergencyContactResponseDTO{}, ErrDocumentExists
-	}
 
 	updateData := map[string]interface{}{
-		"document":     dto.Document,
 		"name":         dto.Name,
 		"last_name":    dto.LastName,
 		"phone_number": dto.PhoneNumber,
@@ -97,7 +89,6 @@ func UpdateContactService(id uint, dto EmergencyContactUpdateDTO) (EmergencyCont
 
 // DeleteContactService maneja la eliminación de un contacto de emergencia.
 func DeleteContactService(id uint) error {
-	// La validación de dependencias se realiza en el repositorio.
 	err := DeleteContactRepository(id)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err

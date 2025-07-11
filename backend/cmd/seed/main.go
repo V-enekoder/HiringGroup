@@ -475,9 +475,67 @@ func SeedCompanies(db *gorm.DB) error {
 }
 
 func SeedEmergencyContacts(db *gorm.DB) error {
-	// --- Paso 1: Crear los contactos de emergencia con datos predefinidos ---
+	// 1. OBTENER LOS CANDIDATOS EXISTENTES
+	var candidates []schema.Candidate
+	if err := db.Find(&candidates).Error; err != nil {
+		return fmt.Errorf("error al obtener candidatos: %w", err)
+	}
 
-	// En lugar de faker, usamos un slice de datos predefinidos.
+	// Si no hay candidatos, no podemos asignar contactos de emergencia.
+	if len(candidates) == 0 {
+		log.Println("No hay candidatos en la base de datos. No se crearán contactos de emergencia.")
+		return nil // Opcional: puedes devolver un error si consideras que es una condición inválida.
+	}
+
+	log.Printf("Se encontraron %d candidatos. Procediendo a crear y vincular contactos de emergencia.", len(candidates))
+
+	// Datos de ejemplo para los contactos
+	contactData := []struct {
+		Name     string
+		LastName string
+	}{
+		{Name: "Miguel", LastName: "Cervantes"},
+		{Name: "Luisa", LastName: "Roldán"},
+		{Name: "Pedro", LastName: "Almodóvar"},
+		{Name: "Ana", LastName: "Torroja"},
+		{Name: "Javier", LastName: "Bardem"},
+		{Name: "Penélope", LastName: "Cruz"},
+		{Name: "Antonio", LastName: "Banderas"},
+		{Name: "Rosalía", LastName: "Vila"},
+		{Name: "Rafael", LastName: "Nadal"},
+		{Name: "Isabel", LastName: "Coixet"},
+	}
+
+	// 2. ITERAR Y VINCULAR
+	for i, data := range contactData {
+		// Asegurarnos de no intentar asignar más contactos que candidatos existentes.
+		if i >= len(candidates) {
+			log.Printf("Se han asignado contactos a todos los %d candidatos disponibles. Deteniendo la creación de más contactos.", len(candidates))
+			break
+		}
+
+		// 3. ASIGNAR EL CandidateID DEL CANDIDATO CORRESPONDIENTE
+		candidateToLink := candidates[i]
+
+		contact := schema.EmergencyContact{
+			Name:        data.Name,
+			LastName:    data.LastName,
+			PhoneNumber: fmt.Sprintf("809-777-%04d", i+2000),
+			CandidateID: candidateToLink.ID, // <-- ¡LA VINCULACIÓN CLAVE!
+		}
+
+		// 4. CREAR EL CONTACTO EN LA BD
+		if err := db.Create(&contact).Error; err != nil {
+			return fmt.Errorf("no se pudo crear el contacto de emergencia para el candidato ID %d: %w", candidateToLink.ID, err)
+		}
+	}
+
+	log.Println("Seeding de Contactos de Emergencia completado y vinculado a los candidatos.")
+	return nil
+}
+
+/*
+func SeedEmergencyContacts(db *gorm.DB) error {
 	contactData := []struct {
 		Name     string
 		LastName string
@@ -501,8 +559,7 @@ func SeedEmergencyContacts(db *gorm.DB) error {
 	// Iteramos sobre nuestra lista de datos predefinidos
 	for i, data := range contactData {
 		contact := schema.EmergencyContact{
-			ID:       uint(i + 1),                 // Asignamos un ID predecible basado en el índice
-			Document: fmt.Sprintf("EM-%04d", i+1), // Documento único para cada contacto
+			ID:       uint(i + 1), // Asignamos un ID predecible basado en el índice
 			Name:     data.Name,
 			LastName: data.LastName,
 			// Generamos un número de teléfono con formato, pero predecible/único
@@ -521,7 +578,7 @@ func SeedEmergencyContacts(db *gorm.DB) error {
 	}
 	log.Printf("Se crearon %d contactos de emergencia.", len(emergencyContacts))
 	return nil
-}
+}*/
 
 func SeedCurriculums(db *gorm.DB) error {
 	var professions []schema.Profession

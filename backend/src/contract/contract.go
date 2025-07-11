@@ -14,7 +14,6 @@ type ContractResponseDTO struct {
 	ID               uint    `json:"id"`
 	Active           bool    `json:"active"`
 	PostulationID    uint    `json:"postulationId"`
-	PeriodID         uint    `json:"periodId"`
 	PeriodName       string  `json:"periodName"`
 	CandidateName    string  `json:"candidateName"`
 	CandidateEmail   string  `json:"candidateEmail"`
