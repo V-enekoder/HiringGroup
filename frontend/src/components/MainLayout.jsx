@@ -3,7 +3,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { useAuth, ROLES } from '../context/AuthContext';
+import { useAuth} from '../context/AuthContext';
 
 import {
   MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, SolutionOutlined, FileTextOutlined,
@@ -14,9 +14,9 @@ import { Button, Layout, Menu, theme } from 'antd';
 import WorkCertificateModal from './WorkCertificateModal'; 
 
 const { Sider, Content } = Layout;
+// --- DEFINICIÓN DE MENÚS PARA CADA ROL ---
 
-
-// Rol: HIRING_GROUP (ID 2)
+// Rol: HIRING GROUP (admin / employeehg)
 const hiringGroupItems = [
     { key: '/hiring-group/empresas', icon: <IdcardOutlined />, label: <Link to="/hiring-group/empresas">Gestionar Empresas</Link> },
     { key: '/hiring-group/postulaciones', icon: <TeamOutlined />, label: <Link to="/hiring-group/postulaciones">Postulaciones</Link> },
@@ -31,15 +31,15 @@ const hiringGroupItems = [
     },
 ];
 
-// Rol: COMPANY (ID 3)
+// Rol: COMPANY
 const companyItems = [
-    { key: '/usuarioEmpresa/editarOfertas', icon: <EditOutlined />, label: <Link to="/usuarioEmpresa/editarOfertas">Gestionar Ofertas</Link> },
+    { key: '/usuario-Empresa/editar-Ofertas', icon: <EditOutlined />, label: <Link to="/usuario-Empresa/editar-Ofertas">Gestionar Ofertas</Link> },
 ];
 
-// Rol: CANDIDATE (ID 4) 
+// Rol: CANDIDATE
 const baseCandidateItems = [
-    { key: '/candidate/curriculum', icon: <UserOutlined />, label: <Link to="/candidate/curriculum">Currículum</Link> },
-    { key: '/candidate/ofertas', icon: <SolutionOutlined />, label: <Link to="/candidate/ofertas">Ofertas</Link> },
+    { key: '/candidato/curriculum', icon: <UserOutlined />, label: <Link to="/candidato/curriculum">Currículum</Link> },
+    { key: '/candidato/ofertas', icon: <SolutionOutlined />, label: <Link to="/candidato/ofertas">Ofertas</Link> },
 ];
 
 
@@ -51,8 +51,9 @@ const MainLayout = () => {
   
   const { user } = useAuth(); 
 
+  // La lógica para la constancia de trabajo no necesita cambios
   const contractData = {
-    name: user?.name || 'Usuario',
+    name: user?.name || 'Usuario', 
     startDate: '01/01/2024',
     position: 'Desarrollador de Software',
     company: 'Tech Solutions Inc.',
@@ -60,29 +61,33 @@ const MainLayout = () => {
   };
 
   const menuItems = useMemo(() => {
-    if (!user) {
+    if (!user || !user.role) {
       return [];
     }
 
-    switch (user.role_id) { 
-      case ROLES.HIRING_GROUP:
+    switch (user.role.toLowerCase()) { 
+      case 'admin':
+      case 'employeehg': 
         return hiringGroupItems;
-      case ROLES.COMPANY:
-        return companyItems;
-      case ROLES.CANDIDATE:
 
-        if (user.is_hired) {
+      case 'company':
+        return companyItems;
+
+      case 'candidate':
+
+        if (user.Hired || user.is_hired) {
             const hiredOptions = [
-                { key: '/contratado/recibos', icon: <FileTextOutlined />, label: <Link to="/contratado/recibos">Mis Recibos</Link> },
-                { key: 'constancia', icon: <FilePdfOutlined />, label: 'Solicitar Constancia', onClick: () => setIsCertificateModalOpen(true) },
-            ];
-            return [...baseCandidateItems, ...hiredOptions];
+                    { key: '/contratado/recibos', icon: <FileTextOutlined />, label: <Link to="/contratado/recibos">Mis Recibos</Link> },
+                    { key: 'constancia', icon: <FilePdfOutlined />, label: 'Solicitar Constancia', onClick: () => setIsCertificateModalOpen(true) },
+                ];
+                return [...baseCandidateItems, ...hiredOptions];
+            }
+            return baseCandidateItems;
+            
+          default:
+            return [];
         }
-        return baseCandidateItems;
-      default:
-        return [];
-    }
-  }, [user]); 
+    }, [user]); 
   return (
     <>
       <Layout style={{ minHeight: '100vh' }}>
@@ -114,6 +119,7 @@ const MainLayout = () => {
         </Layout>
       </Layout>
 
+      {/* El modal para la constancia de trabajo */}
        <WorkCertificateModal 
         open={isCertificateModalOpen}
         onCancel={() => setIsCertificateModalOpen(false)}

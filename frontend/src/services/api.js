@@ -24,9 +24,15 @@ apiClient.interceptors.request.use(
 
 
 export const authService = {
-    login: (credentials) => {
-        return apiClient.post('/login', credentials);
-    },
+    login: (credentials) => apiClient.post('/users/login', credentials),
+    registerUserAndProfile: (data) =>
+         apiClient.post('/users/register', data),
     
 };
 
+export const candidateService = {
+    updateBankDetails: (candidateId, data) => apiClient.put(`/candidates/${candidateId}/bank`, data),
+    updateEmergencyContact: (candidateId, data) => apiClient.put(`/candidates/${candidateId}/emergency`, data),
+    updateProfessionalInfo: (candidateId, data) => apiClient.put(`/candidates/${candidateId}/professional`, data),
+    getCandidateProfile: (candidateId) => apiClient.get(`/candidates/${candidateId}`),
+};

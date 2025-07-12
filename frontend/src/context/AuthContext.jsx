@@ -1,28 +1,44 @@
-
-
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const AuthContext = createContext(null);
-
-export const ROLES = {
-    ADMIN: 1,
-    HIRING_GROUP: 2,
-    COMPANY: 3,
-    CANDIDATE: 4
-};
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
 
+    useEffect(() => {
+        try {
+            const storedUser = localStorage.getItem('authUser');
+            if (storedUser) {
+                setUser(JSON.parse(storedUser));
+            }
+        } catch (error) {
+            console.error('Error parseando authUser de localStorage', error);
+            localStorage.removeItem('authUser');
+        }
+    }, []);
+
     const login = (userData) => {
+        if (!userData || typeof userData !== 'object') {
+            console.error('login: userData inválido', userData);
+            return;
+        }
         setUser(userData);
+        localStorage.setItem('authUser', JSON.stringify(userData));
     };
+
 
     const logout = () => {
         setUser(null);
+        localStorage.removeItem('authUser');
+        localStorage.removeItem('authToken');
     };
 
-    const value = { user, isAuthenticated: !!user, login, logout };
+    const value = {
+        user,
+        isAuthenticated: !!user,
+        login,
+        logout,
+    };
 
     return (
         <AuthContext.Provider value={value}>
