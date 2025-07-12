@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Card, Typography, Steps, Row, Col, Space, message, DatePicker, Select, Divider } from 'antd';
-import { UserOutlined, SolutionOutlined, MobileOutlined, MailOutlined, LockOutlined, BankOutlined, CreditCardOutlined, HomeOutlined, ArrowLeftOutlined, PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Card, Typography, Steps, Row, Col, Space, message, DatePicker, Select, Divider,  App } from 'antd';
+import { UserOutlined, SolutionOutlined, EnvironmentOutlined, MobileOutlined, MailOutlined, LockOutlined, BankOutlined, CreditCardOutlined, HomeOutlined, ArrowLeftOutlined, PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import '../styles/form.css';
+import { authService, candidateService } from '../../services/api';
+import axios from 'axios';
+
 
 const { Title, Text } = Typography;
 const { Step } = Steps;
@@ -12,6 +15,7 @@ const RegisterForm = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState({});
     const [loading, setLoading] = useState(false);
+    const [createdProfileId, setCreatedProfileId] = useState(null);
     const navigate = useNavigate();
 
     const [form1] = Form.useForm();
@@ -19,10 +23,11 @@ const RegisterForm = () => {
     const [form3] = Form.useForm();
     const [form4] = Form.useForm();
     const [form5] = Form.useForm();
-
     const forms = [form1, form2, form3, form4, form5];
 
     const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
+    const { message } = App.useApp()
 
     const steps = [
         {
@@ -36,25 +41,30 @@ const RegisterForm = () => {
                     ]}>
                         <Input prefix={<UserOutlined />} placeholder='ejem. Lilith' />
                     </Form.Item>
-                    <Form.Item label="Apellido" name="lastname" rules={[
+                    <Form.Item label="Apellido" name="last_name" rules={[
                         { required: true, message: 'El apellido es obligatorio' },
                         { min: 2, message: 'Debe tener al menos 2 caracteres' }
                     ]}>
                         <Input prefix={<UserOutlined />} placeholder='ejem. Chitty' />
                     </Form.Item>
-                    <Form.Item label="Documento Identidad" name="documentId" rules={[
+                    <Form.Item label="Documento Identidad" name="document" rules={[
                         { required: true, message: 'El documento es obligatorio' },
                         { pattern: /^\d{6,12}$/, message: 'Debe ser un número entre 6 y 12 dígitos' }
                     ]}>
                         <Input prefix={<SolutionOutlined />} placeholder='ejem. 30810725' />
                     </Form.Item>
-                    <Form.Item label="Número de Teléfono" name="phone" rules={[
+                    <Form.Item label="Número de Teléfono" name="phone_number" rules={[
                         { required: true, message: 'El teléfono es obligatorio' },
                         { pattern: /^\d{11}$/, message: 'Debe ser un número de 11 dígitos' }
                     ]}>
                         <Input prefix={<MobileOutlined />} placeholder='ejem. 04249650528' />
                     </Form.Item>
-                    <Form.Item label="Tipo de Sangre" name="bloodType" rules={[{ required: true, message: 'Selecciona tu tipo de sangre' }]}>
+                     <Form.Item label="Direccion" name="address" rules={[
+                        { required: true, message: 'La dirección es obligatoria' },
+                    ]}>
+                        <Input prefix={<EnvironmentOutlined />} placeholder='ejem. Puerto Ordaz Villa Alianza casa N' />
+                    </Form.Item>
+                    <Form.Item label="Tipo de Sangre" name="blood_type" rules={[{ required: true, message: 'Selecciona tu tipo de sangre' }]}>
                         <Select placeholder="Selecciona">
                             {bloodTypes.map(type => <Option key={type} value={type}>{type}</Option>)}
                         </Select>
@@ -67,12 +77,6 @@ const RegisterForm = () => {
             content: (
                 <Form form={form2} layout="vertical" initialValues={formData}>
                     <Title level={4} style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Datos de la Cuenta</Title>
-                    <Form.Item label="Usuario" name="user" rules={[
-                        { required: true, message: 'El usuario es obligatorio' },
-                        { min: 4, message: 'Debe tener al menos 4 caracteres' }
-                    ]}>
-                        <Input prefix={<UserOutlined />} placeholder='ejem. ChittyLilit' />
-                    </Form.Item>
                     <Form.Item label="Correo Electrónico" name="email" rules={[
                         { required: true, message: 'El correo es obligatorio' },
                         { type: 'email', message: 'Formato de correo inválido' }
@@ -81,7 +85,7 @@ const RegisterForm = () => {
                     </Form.Item>
                     <Form.Item label="Contraseña" name="password" rules={[
                         { required: true, message: 'La contraseña es obligatoria' },
-                        { min: 6, message: 'Debe tener mínimo 6 caracteres' }
+                        { min: 8, message: 'Debe tener mínimo  caracteres' }
                     ]}>
                         <Input.Password prefix={<LockOutlined />} placeholder='ejem. Chi123.12' />
                     </Form.Item>
@@ -151,7 +155,7 @@ const RegisterForm = () => {
                             <>
                                 {fields.map(({ key, name, ...restField }) => (
                                     <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                                        <Form.Item {...restField} name={[name, 'company']} rules={[{ required: true, message: 'Nombre de la empresa' }]}>
+                                        <Form.Item {...restField} name={[name, 'company_name']} rules={[{ required: true, message: 'Nombre de la empresa' }]}>
                                             <Input placeholder="Empresa" />
                                         </Form.Item>
                                         <Form.Item {...restField} name={[name, 'position']} rules={[{ required: true, message: 'Cargo' }]}>
@@ -177,27 +181,69 @@ const RegisterForm = () => {
         }
     ];
 
-    const handleNext = async () => {
-        setLoading(true);
-        try {
-            const values = await forms[currentStep].validateFields();
-            const newFormData = { ...formData, ...values };
-            setFormData(newFormData);
 
-            if (currentStep < steps.length - 1) {
-                setCurrentStep(currentStep + 1);
-            } else {
-                console.log('Formulario completo:', newFormData);
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                message.success(`¡Registro completado, ${newFormData.name}! Serás redirigido al login.`);
-                setTimeout(() => navigate('/login'), 2000);
+// En tu RegisterForm.jsx
+
+const handleNext = async () => {
+    setLoading(true);
+    try {
+        const currentForm = forms[currentStep];
+        const values = await currentForm.validateFields();
+        
+        const newFormData = { ...formData, ...values };
+        setFormData(newFormData);
+
+        if (currentStep < 4) { // Si no es el último paso
+            
+            if (currentStep === 1) { 
+                console.log("Paso 1 completado. Compilando y enviando datos iniciales...");
+                
+                const payload = {
+                    name: newFormData.name,
+                    email: newFormData.email,
+                    password: newFormData.password,
+                    role_id: 4,
+                    last_name: newFormData.last_name,
+                    document: newFormData.document,
+                    phone_number: newFormData.phone_number,
+                    address: newFormData.address,
+                    blood_type: newFormData.blood_type,
+                };
+
+                console.log("DEBUG: Payload a punto de ser enviado:", payload);
+                
+                const response = await authService.registerUserAndProfile(payload);
+                const newProfileId = response.data.profile_id; 
+                setCreatedProfileId(newProfileId);
+
+                message.success('¡Usuario creado! Continúa con tu perfil.');
             }
-        } catch (error) {
-            console.log('Errores de validación:', error);
-        } finally {
-            setLoading(false);
+
+            setCurrentStep(currentStep + 1);
+
+        } else { 
+            
+            console.log("Enviando información final...", newFormData);
+
+            
+            message.success(`¡Registro completado! Serás redirigido al login.`);
+            setTimeout(() => navigate('/login'), 2000);
         }
-    };
+
+    } catch (error) {
+        console.error('Error en el paso de registro:', error);
+        
+        let errorMessage = 'Por favor, corrige los errores antes de continuar';
+        if (error.response && error.response.data && error.response.data.error) {
+            errorMessage = error.response.data.error; 
+        }
+        
+        message.error(errorMessage);
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     return (
         <div className="register-container">
