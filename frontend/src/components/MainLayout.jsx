@@ -1,45 +1,43 @@
 // LAYOUT PRINCIPAL
-
-
 import React, { useState, useMemo } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
-import { useAuth} from '../context/AuthContext';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 import {
   MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, SolutionOutlined, FileTextOutlined,
   EditOutlined, FilePdfOutlined, IdcardOutlined, TeamOutlined, DollarCircleOutlined,
-  SettingOutlined, BankOutlined
+  SettingOutlined, BankOutlined, PoweroffOutlined,
 } from '@ant-design/icons';
-import { Button, Layout, Menu, theme } from 'antd';
-import WorkCertificateModal from './WorkCertificateModal'; 
+import { Button, Layout, Menu, theme, Divider } from 'antd';
+import WorkCertificateModal from './WorkCertificateModal';
 
 const { Sider, Content } = Layout;
 // --- DEFINICIÓN DE MENÚS PARA CADA ROL ---
 
 // Rol: HIRING GROUP (admin / employeehg)
 const hiringGroupItems = [
-    { key: '/hiring-group/empresas', icon: <IdcardOutlined />, label: <Link to="/hiring-group/empresas">Gestionar Empresas</Link> },
-    { key: '/hiring-group/postulaciones', icon: <TeamOutlined />, label: <Link to="/hiring-group/postulaciones">Postulaciones</Link> },
-    { key: '/hiring-group/nomina', icon: <DollarCircleOutlined />, label: <Link to="/hiring-group/nomina">Gestión de Nómina</Link> },
-    { 
-        key: 'configuracion', 
-        icon: <SettingOutlined />, 
-        label: 'Configuración',
-        children: [
-            { key: '/hiring-group/bancos', icon: <BankOutlined />, label: <Link to="/hiring-group/bancos">Bancos</Link> },
-        ]
-    },
+  { key: '/hiring-group/empresas', icon: <IdcardOutlined />, label: <Link to="/hiring-group/empresas">Gestionar Empresas</Link> },
+  { key: '/hiring-group/postulaciones', icon: <TeamOutlined />, label: <Link to="/hiring-group/postulaciones">Postulaciones</Link> },
+  { key: '/hiring-group/nomina', icon: <DollarCircleOutlined />, label: <Link to="/hiring-group/nomina">Gestión de Nómina</Link> },
+  {
+    key: 'configuracion',
+    icon: <SettingOutlined />,
+    label: 'Configuración',
+    children: [
+      { key: '/hiring-group/bancos', icon: <BankOutlined />, label: <Link to="/hiring-group/bancos">Bancos</Link> },
+    ]
+  },
 ];
 
 // Rol: COMPANY
 const companyItems = [
-    { key: '/usuario-Empresa/editar-Ofertas', icon: <EditOutlined />, label: <Link to="/usuario-Empresa/editar-Ofertas">Gestionar Ofertas</Link> },
+  { key: '/usuario-Empresa/editar-Ofertas', icon: <EditOutlined />, label: <Link to="/usuario-Empresa/editar-Ofertas">Gestionar Ofertas</Link> },
 ];
 
 // Rol: CANDIDATE
 const baseCandidateItems = [
-    { key: '/candidato/curriculum', icon: <UserOutlined />, label: <Link to="/candidato/curriculum">Currículum</Link> },
-    { key: '/candidato/ofertas', icon: <SolutionOutlined />, label: <Link to="/candidato/ofertas">Ofertas</Link> },
+  { key: '/candidato/curriculum', icon: <UserOutlined />, label: <Link to="/candidato/curriculum">Currículum</Link> },
+  { key: '/candidato/ofertas', icon: <SolutionOutlined />, label: <Link to="/candidato/ofertas">Ofertas</Link> },
 ];
 
 
@@ -48,12 +46,16 @@ const MainLayout = () => {
   const { token } = theme.useToken();
   const location = useLocation();
   const [isCertificateModalOpen, setIsCertificateModalOpen] = useState(false);
-  
-  const { user } = useAuth(); 
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
-  // La lógica para la constancia de trabajo no necesita cambios
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   const contractData = {
-    name: user?.name || 'Usuario', 
+    name: user?.name || 'Usuario',
     startDate: '01/01/2024',
     position: 'Desarrollador de Software',
     company: 'Tech Solutions Inc.',
@@ -65,36 +67,52 @@ const MainLayout = () => {
       return [];
     }
 
-    switch (user.role.toLowerCase()) { 
+    let roleItems = [];
+
+    switch (user.role.toLowerCase()) {
       case 'admin':
-      case 'employeehg': 
-        return hiringGroupItems;
+      case 'employeehg':
+        roleItems = hiringGroupItems;
+        break;
 
       case 'company':
-        return companyItems;
+       roleItems = companyItems;
+        break;
 
       case 'candidate':
-
+        roleItems = [...baseCandidateItems];
         if (user.Hired || user.is_hired) {
-            const hiredOptions = [
-                    { key: '/contratado/recibos', icon: <FileTextOutlined />, label: <Link to="/contratado/recibos">Mis Recibos</Link> },
-                    { key: 'constancia', icon: <FilePdfOutlined />, label: 'Solicitar Constancia', onClick: () => setIsCertificateModalOpen(true) },
-                ];
-                return [...baseCandidateItems, ...hiredOptions];
-            }
-            return baseCandidateItems;
-            
-          default:
-            return [];
+          const hiredOptions = [
+            { key: '/contratado/recibos', icon: <FileTextOutlined />, label: <Link to="/contratado/recibos">Mis Recibos</Link> },
+            { key: 'constancia', icon: <FilePdfOutlined />, label: 'Solicitar Constancia', onClick: () => setIsCertificateModalOpen(true) },
+          ];
+          roleItems.push(...hiredOptions);
         }
-    }, [user]); 
+        break;
+
+      default:
+        roleItems = [];
+    }
+     return [
+      ...roleItems,
+      { type: 'divider', key: 'divider' }, // Separador visual
+      {
+        key: 'logout',
+        icon: <PoweroffOutlined />,
+        label: 'Cerrar Sesión',
+        onClick: handleLogout,
+        danger: true, 
+      },
+    ];
+
+  }, [user]);
   return (
     <>
       <Layout style={{ minHeight: '100vh' }}>
-        <Sider 
-          style={{ backgroundColor: token.colorBgLayout }} 
-          trigger={null} 
-          collapsible 
+        <Sider
+          style={{ backgroundColor: token.colorBgLayout }}
+          trigger={null}
+          collapsible
           collapsed={collapsed}
         >
           <Button
@@ -106,7 +124,7 @@ const MainLayout = () => {
           <Menu
             mode="inline"
             selectedKeys={[location.pathname]}
-            defaultOpenKeys={['configuracion']} 
+            defaultOpenKeys={['configuracion']}
             items={menuItems}
             style={{ backgroundColor: token.colorBgLayout, borderRight: 0 }}
           />
@@ -114,13 +132,13 @@ const MainLayout = () => {
 
         <Layout>
           <Content style={{ padding: 24, overflow: 'auto' }}>
-            <Outlet /> 
+            <Outlet />
           </Content>
         </Layout>
       </Layout>
 
       {/* El modal para la constancia de trabajo */}
-       <WorkCertificateModal 
+      <WorkCertificateModal
         open={isCertificateModalOpen}
         onCancel={() => setIsCertificateModalOpen(false)}
         userData={contractData}
