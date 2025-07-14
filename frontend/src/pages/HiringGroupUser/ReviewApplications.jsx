@@ -1,10 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Flex, Typography, Button, Select, Input, List, Modal, Form, InputNumber, message, Tag, Avatar, Descriptions } from 'antd';
-import { UserOutlined, SearchOutlined, ClearOutlined, SolutionOutlined, DollarOutlined, TeamOutlined, IdcardOutlined, BankOutlined, PhoneOutlined } from '@ant-design/icons';
+import { Flex, Typography, Space, Button, Select, Input, Divider, List, Modal, Form, InputNumber, message, Tag, Avatar, Descriptions } from 'antd';
+import { UserOutlined, SearchOutlined, SolutionOutlined, DollarOutlined, TeamOutlined, IdcardOutlined, ClearOutlined, PhoneOutlined, MailOutlined, ToolOutlined, BookOutlined }  from '@ant-design/icons';
 import '../styles/pag.css';
 
-const { Title, Text } = Typography;
-
+const { Title, Text, Paragraph } = Typography;
 const initialCompanies = [{ id: 1, name: 'Tech Solutions Inc.' }, { id: 2, name: 'Innovate Marketing' }];
 const initialOffers = [
     { id: 101, companyId: 1, cargo: 'Frontend Developer (Senior)', estatus: 'activa', profesion: 'Ing. de Software', salario: 5500 },
@@ -12,8 +11,37 @@ const initialOffers = [
     { id: 103, companyId: 1, cargo: 'Backend Developer (Node.js)', estatus: 'inactiva', profesion: 'Ing. de Software', salario: 6000 },
 ];
 const initialCandidates = [
-    { id: 201, name: 'Ana Martínez', bloodType: 'A+', emergencyContact: 'Carlos Martínez', emergencyPhone: '555-1111', bank: 'Banesco', accountNumber: '0134...' },
-    { id: 202, name: 'Juan Pérez', bloodType: 'O-', emergencyContact: 'María González', emergencyPhone: '555-2222', bank: 'Mercantil', accountNumber: '0105...' },
+    { 
+        id: 201, 
+        name: 'Ana Martínez', 
+        email: 'ana.martinez@email.com',
+        phone: '555-123-4567',
+        profession: 'Ingeniera de Software Senior',
+        summary: 'Desarrolladora de software con más de 5 años de experiencia en el ecosistema de React, especializada en la creación de interfaces de usuario escalables y de alto rendimiento.',
+        skills: ['React', 'TypeScript', 'Node.js', 'Ant Design', 'GraphQL', 'CI/CD'],
+        experience: [
+            { id: 1, company: 'Tech Solutions Inc.', role: 'Frontend Developer', period: '2020 - Presente' },
+            { id: 2, company: 'Web Innovators', role: 'Jr. Developer', period: '2018 - 2020' },
+        ],
+        education: [
+            { id: 1, institution: 'Universidad Central', degree: 'Ingeniería en Informática', period: '2014 - 2018' }
+        ]
+    },
+    { 
+        id: 202, 
+        name: 'Juan Pérez',
+        email: 'juan.perez@email.com',
+        phone: '555-987-6543',
+        profession: 'Diseñador de Producto',
+        summary: 'Diseñador UX/UI apasionado por crear productos digitales intuitivos y centrados en el usuario. Experto en metodologías ágiles y design thinking.',
+        skills: ['Figma', 'Sketch', 'Adobe XD', 'User Research', 'Prototyping'],
+        experience: [
+            { id: 1, company: 'Innovate Marketing', role: 'UX/UI Designer', period: '2019 - Presente' },
+        ],
+        education: [
+            { id: 1, institution: 'Instituto de Diseño', degree: 'Diseño Gráfico', period: '2015 - 2019' }
+        ]
+    },
 ];
 const initialApplications = [
     { offerId: 101, candidateId: 201 },
@@ -30,10 +58,12 @@ const ReviewApplications = () => {
     // Estados para los modales
     const [isApplicantsModalVisible, setIsApplicantsModalVisible] = useState(false);
     const [isHireModalVisible, setIsHireModalVisible] = useState(false);
+    const [isCvModalVisible, setIsCvModalVisible] = useState(false); 
     
     // Datos seleccionados
     const [selectedOffer, setSelectedOffer] = useState(null);
     const [selectedHire, setSelectedHire] = useState(null);
+    const [selectedCandidateForCv, setSelectedCandidateForCv] = useState(null); 
     
     const [form] = Form.useForm();
 
@@ -85,6 +115,16 @@ const ReviewApplications = () => {
         } catch (error) {
             console.log('Error en la finalización:', error);
         }
+    };
+
+     const handleOpenCvModal = (candidate) => {
+        setSelectedCandidateForCv(candidate);
+        setIsCvModalVisible(true);
+    };
+
+    const handleCloseCvModal = () => {
+        setIsCvModalVisible(false);
+        setTimeout(() => setSelectedCandidateForCv(null), 300);
     };
 
     return (
@@ -163,7 +203,7 @@ const ReviewApplications = () => {
                         renderItem={candidate => (
                             <List.Item
                                 actions={[ 
-                                    <Button type="link">Ver CV</Button>,
+                                    <Button type="link" onClick={() => handleOpenCvModal(candidate)}>Ver CV</Button>,
                                     <Button type="dashed" onClick={() => handleOpenHireModal(selectedOffer, candidate)}>Contratar</Button> 
                                 ]}
                             >
@@ -208,6 +248,74 @@ const ReviewApplications = () => {
                     </Descriptions>
                 </Modal>
             )}
+         {/* ---MODAL 3 VISTA DE CURRÍCULUM --- */}
+            {selectedCandidateForCv && (
+                <Modal
+                    // Quitamos el título por defecto para tener control total del encabezado
+                    title={null} 
+                    open={isCvModalVisible}
+                    onCancel={handleCloseCvModal}
+                    footer={[ <Button key="back" type="primary" onClick={handleCloseCvModal}>Cerrar</Button> ]}
+                    width={800}
+                    // bodyStyle es importante para quitar paddings extraños del modal por defecto
+                    bodyStyle={{ padding: '40px' }}
+                >
+                    <Flex vertical gap="large">
+                        {/* --- ENCABEZADO DEL CURRÍCULUM --- */}
+                        <Flex gap="large" align="center">
+                            <Avatar size={100} icon={<UserOutlined />} />
+                            <Flex vertical>
+                                <Title level={3} style={{ margin: 0 }}>{selectedCandidateForCv.name}</Title>
+                                <Text type="secondary" style={{ fontSize: '16px' }}>{selectedCandidateForCv.profession}</Text>
+                                <Space style={{ marginTop: '8px' }}>
+                                    <Text><MailOutlined style={{ marginRight: 4 }}/> {selectedCandidateForCv.email}</Text>
+                                    <Text><PhoneOutlined style={{ marginRight: 4 }}/> {selectedCandidateForCv.phone}</Text>
+                                </Space>
+                            </Flex>
+                        </Flex>
+                        
+                        <Divider />
+
+                        {/* --- SECCIÓN: RESUMEN PROFESIONAL --- */}
+                        <div>
+                            <Title level={5}>Resumen Profesional</Title>
+                            <Paragraph type="secondary">{selectedCandidateForCv.summary}</Paragraph>
+                        </div>
+
+                        {/* --- SECCIÓN: HABILIDADES --- */}
+                        <div>
+                            <Title level={5}><ToolOutlined style={{marginRight: 8}}/> Habilidades</Title>
+                            <Flex gap="small" wrap="wrap">
+                                {selectedCandidateForCv.skills.map(skill => <Tag key={skill} bordered={false} style={{padding: '4px 10px', fontSize: '14px'}}>{skill}</Tag>)}
+                            </Flex>
+                        </div>
+
+                        {/* --- SECCIÓN: EXPERIENCIA LABORAL --- */}
+                        <div>
+                            <Title level={5}><IdcardOutlined style={{marginRight: 8}}/> Experiencia Laboral</Title>
+                            {selectedCandidateForCv.experience.map(exp => (
+                                <div key={exp.id} style={{ marginBottom: 16 }}>
+                                    <Text strong>{exp.role}</Text>
+                                    <Text type="secondary" style={{display: 'block'}}>{exp.company} | {exp.period}</Text>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* --- SECCIÓN: EDUCACIÓN --- */}
+                        <div>
+                            <Title level={5}><BookOutlined style={{marginRight: 8}}/> Educación</Title>
+                             {selectedCandidateForCv.education.map(edu => (
+                                <div key={edu.id}>
+                                    <Text strong>{edu.degree}</Text>
+                                    <Text type="secondary" style={{display: 'block'}}>{edu.institution} | {edu.period}</Text>
+                                </div>
+                            ))}
+                        </div>
+                    </Flex>
+                </Modal>
+            )}
+
+
         </div>
     );
 };
