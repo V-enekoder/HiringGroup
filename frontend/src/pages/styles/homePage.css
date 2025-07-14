@@ -1,0 +1,170 @@
+
+.home-container {
+    background-color: #f1f8fa; 
+}
+
+/* --- Estilos de la Sección HERO --- */
+.hero-section {
+    background: linear-gradient(135deg, #376b83 0%, #2b404e 100%);
+    color: white;
+    padding: 80px 24px;
+    text-align: center;
+    border-bottom-left-radius: 40px;
+    border-bottom-right-radius: 40px;
+}
+
+.content-wrapper {
+    max-width: 1200px;
+    margin: -40px auto 0 auto; 
+    padding: 0 24px 48px 24px;
+    position: relative;
+    z-index: 1;
+}
+
+/* --- Estilos de las Tarjetas de Servicio --- */
+.feature-card {
+    background-color: #f1f8fa !important; 
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 30px rgba(0, 80, 115, 0.1);
+}
+
+.feature-icon {
+    font-size: 48px;
+    color: #3f839b; 
+    margin-bottom: 24px;
+}
+
+/* --- Estilos de las Cajas de CTA --- */
+.cta-box {
+    padding: 32px;
+    border-radius: 16px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.cta-company {
+    background-color: #dcecf1; 
+}
+
+.cta-candidate {
+    background-color: #e8f0f3; 
+    border: 1px solid #dcecf1;
+}
+
+/* --- Estilos del Footer --- */
+.home-footer {
+    padding: 24px;
+    background-color: #e6f0f4;
+    border-top: 1px solid #dcecf1;
+}
+
+.process-item-v2 {
+    background-color: #e8f0f3;
+    border: 1px solid #dcecf1;
+    border-radius: 16px;
+    padding: 24px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.process-item-v2:hover {
+    transform: translateY(-5px);
+    border-color: #3f839b; 
+    box-shadow: 0 8px 24px rgba(0, 80, 115, 0.08);
+}
+
+.process-number {
+    font-size: 4rem; 
+    font-weight: 700;
+    color: #cce5ec; 
+    line-height: 1;  
+    user-select: none; 
+}
+
+.process-item-v2 .process-title {
+    color: #304b5a !important;
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+}
+
+.process-item-v2 .process-description {
+    font-size: 16px;
+    color: #5a7a8a;
+}
+
+
+.process-title {
+    color: #304b5a !important;
+    margin-bottom: 8px !important;
+    min-height: 54px; 
+    display: flex;
+    align-items: center;
+}
+
+.process-description {
+    font-size: 14px;
+    color: #5a7a8a;
+}
+
+/* --- Estilo de la flecha/conector --- */
+.process-path-arrow {
+    display: flex;
+    align-items: center;
+    color: #c8dce4; 
+    font-size: 24px;
+    margin-top: 28px;
+}
+
+
+/* --- Responsividad para pantallas más pequeñas --- */
+@media (max-width: 992px) {
+    .process-path-arrow {
+        display: none;
+    }
+    .process-path-container {
+        gap: 32px; 
+    }
+    .process-path-item {
+        max-width: 45%; 
+    }
+}
+
+@media (max-width: 576px) {
+    .process-path-item {
+        max-width: 100%; 
+    }
+}
+/* Keyframe para la animación de "aparecer y subir" */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Clase de animación base que aplicaremos a los elementos */
+.fade-in-up {
+    opacity: 0; 
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+.delay-6 { animation-delay: 0.6s; }
