@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import { Home as HomePage } from '../pages/home/HomePage.jsx';
+import { HomePage } from '../pages/home/HomePage.jsx';
 import { LoginForm } from '../pages/form/LoginForm.jsx';
 import RegisterForm from '../pages/form/RegisterForm.jsx';
 import JobOffers from '../pages/candidate/JobOffers.jsx';
@@ -11,6 +11,7 @@ import ManageCompanies from '../pages/HiringGroupUser/ManageCompanies.jsx';
 import ReviewApplications from '../pages/HiringGroupUser/ReviewApplications.jsx';
 import PayrollManagement from '../pages/HiringGroupUser/PayrollManagement.jsx';
 import HistoryOffers from '../pages/candidate/HistoryOffers.jsx';
+import ManageBanks from '../pages/HiringGroupUser/ManageBanks.jsx';
 
 
 const AppRoutes = () => {
@@ -32,6 +33,7 @@ const AppRoutes = () => {
         <Route path="/hiring-group/empresas" element={<ManageCompanies />} /> 
         <Route path="/hiring-group/postulaciones" element={<ReviewApplications />} />
         <Route path="/hiring-group/nomina" element={<PayrollManagement />} />
+        <Route path="/hiring-group/bancos" element={<ManageBanks/>} />
 
         {/* Rutas de la Empresa */}
         <Route path="/usuario-Empresa/editar-Ofertas" element={<EditOffers />} /> 
