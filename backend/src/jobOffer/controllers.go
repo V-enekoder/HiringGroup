@@ -65,6 +65,22 @@ func GetJobOfferByIDController(c *gin.Context) {
 	c.JSON(http.StatusOK, jobOffer)
 }
 
+func GetJobOffersByCompanyController(c *gin.Context) {
+	companyID, err := strconv.ParseUint(c.Param("companyId"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid company ID format"})
+		return
+	}
+
+	offers, err := GetJobOffersByCompanyService(uint(companyID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, offers)
+}
+
 func UpdateJobOfferController(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {

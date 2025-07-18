@@ -10,6 +10,7 @@ func RegisterRoutes(router *gin.Engine) {
 		joboffers.GET("/", GetAllActiveJobOffersController)
 		joboffers.GET("/active", GetActiveJobOffersController)
 		joboffers.GET("/:id", GetJobOfferByIDController)
+		joboffers.GET("/company/:companyId", GetJobOffersByCompanyController)
 		joboffers.PUT("/:id", UpdateJobOfferController)
 		joboffers.DELETE("/:id", DeleteJobOfferController)
 	}

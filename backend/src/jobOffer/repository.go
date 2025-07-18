@@ -37,6 +37,18 @@ func GetJobOfferByIDRepository(id uint) (schema.JobOffer, error) {
 	return jobOffer, err
 }
 
+func GetJobOffersByCompanyRepository(companyID uint) ([]schema.JobOffer, error) {
+	var jobOffers []schema.JobOffer
+	db := config.DB
+	err := db.
+		Preload("Company").
+		Preload("Profession").
+		Preload("Zone").
+		Where("company_id = ?", companyID).
+		Find(&jobOffers).Error
+	return jobOffers, err
+}
+
 func UpdateJobOfferRepository(id uint, data map[string]interface{}) error {
 	db := config.DB
 	return db.Model(&schema.JobOffer{}).Where("id = ?", id).Updates(data).Error

@@ -78,6 +78,19 @@ func GetJobOfferByIDService(id uint) (JobOfferResponseDTO, error) {
 	return mapToResponseDTO(offer), nil
 }
 
+func GetJobOffersByCompanyService(companyID uint) ([]JobOfferResponseDTO, error) {
+	jobOffers, err := GetJobOffersByCompanyRepository(companyID)
+	if err != nil {
+		return nil, err
+	}
+
+	var responseDTOs []JobOfferResponseDTO
+	for _, offer := range jobOffers {
+		responseDTOs = append(responseDTOs, mapToResponseDTO(offer))
+	}
+	return responseDTOs, nil
+}
+
 func UpdateJobOfferService(id uint, dto JobOfferUpdateDTO) (JobOfferResponseDTO, error) {
 	updateData := make(map[string]interface{})
 

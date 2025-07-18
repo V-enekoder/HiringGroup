@@ -45,7 +45,11 @@ export const companyService = {
 }
 
 export const jobOffersService = {
-    getActiveOffers: () => apiClient.get('/joboffers/active')
+    createNewOffer: (data) => apiClient.post('/joboffers/', data),
+    updateJobOffer: (offerId, data) => apiClient.put(`/joboffers/${offerId}`, data),
+    getActiveOffers: () => apiClient.get('/joboffers/active'),
+    getOffersbyCompany: (companyId) => apiClient.get(`/joboffers/company/${companyId}`),
+    deleteJobOffer: (offerId) => apiClient.delete(`/joboffers/${offerId}`)
 }
 
 export const postulationService = {
@@ -57,4 +61,12 @@ export const bankService = {
     updateBank: (bankId, data) => apiClient.put(`/banks/${bankId}`, data),
     getAllBanks: () => apiClient.get('/banks/'),
     deleteBank: (bankId) => apiClient.delete(`/banks/${bankId}`)
+}
+
+export const professionService = {
+    getAllProfessions: () => apiClient.get('/professions/')
+}
+
+export const zoneService = {
+    getAllZones: () => apiClient.get('/zones/')
 }

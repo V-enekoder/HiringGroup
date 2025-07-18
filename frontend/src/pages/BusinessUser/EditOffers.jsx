@@ -1,9 +1,11 @@
 //PAGINA QUE PERMITE EDITAR LAS OFERTAS
-import React, { useState, useMemo } from 'react';
-import { Flex, Typography, Button, Select, Input, Tag, Switch, Modal, message } from 'antd';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Flex, Typography, Button, Select, Form, Input, Tag, Switch, Modal, message } from 'antd';
 import { PlusOutlined, ClearOutlined, SearchOutlined, EditOutlined, DeleteOutlined, DollarOutlined, SolutionOutlined } from '@ant-design/icons';
+import { useAuth } from '../../context/AuthContext';
 import EditableField from '../../components/EditableField';
 import '../styles/pag.css';
+import { jobOffersService, professionService, zoneService } from '../../services/api';
 
 const { Title, Text } = Typography;
 
@@ -22,15 +24,68 @@ const estatusOptions = [
 ];
 
 const EditOffers = () => {
+    const { user } = useAuth()
+    const companyId = user?.profile_id
+
     // --- Estados del componente ---
-    const [offers, setOffers] = useState(initialOffers); // Almacena la lista completa de ofertas
+    const [offers, setOffers] = useState([]); // Almacena la lista completa de ofertas
+    const [professions, setProfessions] = useState([])
+    const [zones, setZones] = useState([])
+    const [editingOffer, setEditingOffer] = useState(null)
     const [filtroEstatus, setFiltroEstatus] = useState(null); // Estado para el filtro de estatus
     const [searchTerm, setSearchTerm] = useState(''); // Estado para el término de búsqueda
     const [isModalVisible, setIsModalVisible] = useState(false); // Controla la visibilidad del modal
     const [ofertaSeleccionada, setOfertaSeleccionada] = useState(null); // Guarda la oferta que se está editando
+    const [form] = Form.useForm()
+
+    useEffect(() => {
+        if(!companyId) return
+
+        console.log("El id de la empresa es: ", companyId)
+        const getOffers = async () => {
+            try{
+                const response = await jobOffersService.getOffersbyCompany(companyId)
+                const data = response.data
+
+                setOffers(data)
+            }catch(error){
+                console.error('Error al cargar ofertas:', error)
+                message.error('Error al cargar las ofertas de la empresa desde el servidor.')
+            }
+            
+        }
+
+        const getProfessions = async () => {
+            try{
+                const response = await professionService.getAllProfessions()
+                const data = response.data
+
+                setProfessions(data)
+            }catch(error){
+                console.error('Error al cargar profesiones:', error)
+                message.error('Error al cargar las profesiones desde el servidor.')
+            }
+        }
+
+        const getZones = async () => {
+            try{
+                const response = await zoneService.getAllZones()
+                const data = response.data
+
+                setZones(data)
+            }catch(error){
+                console.error('Error al cargar zonas:', error)
+                message.error('Error al cargar las zonas desde el servidor.')
+            }
+        }
+
+        getOffers()
+        getProfessions()
+        getZones()
+    }, [companyId])
 
     // Memoriza las ofertas filtradas para optimizar el rendimiento. Solo se recalcula si cambian las dependencias.
-    const ofertasFiltradas = useMemo(() => {
+    /*const ofertasFiltradas = useMemo(() => {
         return offers.filter(offer => {
             const matchEstatus = !filtroEstatus || offer.estatus === filtroEstatus;
             const matchSearch = !searchTerm ||
@@ -38,7 +93,7 @@ const EditOffers = () => {
                 offer.profesion.toLowerCase().includes(searchTerm.toLowerCase());
             return matchEstatus && matchSearch;
         });
-    }, [offers, filtroEstatus, searchTerm]);
+    }, [offers, filtroEstatus, searchTerm]);*/
 
 
     // --- Funciones para manejar las ofertas ---
@@ -47,19 +102,29 @@ const EditOffers = () => {
         setSearchTerm('');
     };
 
-    const addOffer = () => {
-        const newOffer = { id: Date.now(), profesion: 'Nueva Profesión', cargo: 'Nuevo Cargo Vacante', descripcion: 'Añade aquí la descripción del puesto.', salario: 'Rango salarial', estatus: 'activa' };
-        setOffers(prevOffers => [newOffer, ...prevOffers]);
-        message.success('Nueva oferta creada. ¡Edítala para añadir los detalles!');
+    const handleCreate = () => {
+        setEditingOffer(null)
+        form.resetFields()
+        setIsModalVisible(true)
     };
 
-    const removeOffer = (id) => {
-        Modal.confirm({ title: '¿Estás seguro de que quieres eliminar esta oferta?', content: 'Esta acción no se puede deshacer.', okText: 'Sí, eliminar', okType: 'danger', cancelText: 'No, cancelar', onOk() { setOffers(prevOffers => prevOffers.filter(o => o.id !== id)); message.warning('Oferta eliminada correctamente.'); }, });
+    const handleDelete = async (id) => {
+        try{
+            await jobOffersService.deleteJobOffer(id)
+
+            setOffers(prev => prev.filter(c => c.id !== id));
+            message.success('Oferta eliminada correctamente.');
+        }catch(error){
+            console.log('Error de validación:', error)
+        }
+        
     };
 
     // --- Funciones para controlar el Modal de Edición ---
     const handleEditClick = (offer) => {
-        setOfertaSeleccionada({ ...offer }); // Clona la oferta para evitar mutaciones directas
+        setEditingOffer(offer)
+        setOfertaSeleccionada(offer)
+        form.setFieldsValue(offer)
         setIsModalVisible(true);
     };
 
@@ -68,11 +133,31 @@ const EditOffers = () => {
         setOfertaSeleccionada(null);
     };
 
-    const handleModalSave = () => {
-        // Actualiza la lista principal con los datos de la oferta editada
-        setOffers(prevOffers => prevOffers.map(o => o.id === ofertaSeleccionada.id ? ofertaSeleccionada : o));
-        message.success('¡Oferta actualizada con éxito!');
-        handleModalCancel();
+    const handleModalSave = async () => {
+        try {
+            const values = await form.validateFields();
+            values.salary = parseFloat(values.salary);
+            
+            if (editingOffer) {
+                const response = await jobOffersService.updateJobOffer(editingOffer.id, values);
+                const updatedOffer = response.data;
+
+                setOffers(prev => prev.map(c => c.id === editingOffer.id ?  updatedOffer : c));
+                message.success('Oferta actualizada con éxito.');
+
+            } else {
+                values.companyId = companyId;
+                const response = await jobOffersService.createNewOffer(values);
+                const newOffer = response.data;
+
+                setOffers(prev => [newOffer, ...prev]);
+                message.success('Nueva Oferta creada con éxito.');
+            }
+            setIsModalVisible(false);
+            form.resetFields();
+        } catch (error) {
+            console.log('Error de validación:', error);
+        }
     };
     
     // Actualiza el estado temporal de la oferta mientras se edita en el modal
@@ -81,16 +166,26 @@ const EditOffers = () => {
     };
     
     const handleStatusChangeInModal = (checked) => {
-        const newStatus = checked ? 'activa' : 'inactiva';
-        setOfertaSeleccionada(prev => ({...prev, estatus: newStatus}));
+        const newStatus = checked ? true : false;
+        setOfertaSeleccionada(prev => ({...prev, active: newStatus}));
     };
+
+    const professionOptions = professions.map(p => ({
+        label: p.name,     // lo que se ve en el Select
+        value: p.id        // lo que se guarda en el form
+    }));
+
+    const zoneOptions = zones.map(z => ({
+        label: z.name,     // lo que se ve en el Select
+        value: z.id        // lo que se guarda en el form
+    }));
 
     return (
         <div className='contenedorMain2'>
             {/* Encabezado y botón para crear nueva oferta */}
             <Flex justify="space-between" align="center" wrap="wrap" gap="middle">
                     <Title level={2} style={{ color: '#2b404e', margin: 0 }}>Mis Ofertas de Empleo</Title>
-                <Button icon={<PlusOutlined />} onClick={addOffer}>
+                <Button icon={<PlusOutlined />} onClick={handleCreate}>
                     Crear Nueva Oferta
                 </Button>
             </Flex>
@@ -106,19 +201,22 @@ const EditOffers = () => {
 
             {/* Grid que muestra las tarjetas de las ofertas */}
             <div className='receipts-grid'>
-                {ofertasFiltradas.length > 0 ? (
+                {offers.length > 0 ? (
                     // Itera sobre las ofertas filtradas para renderizarlas
-                    ofertasFiltradas.map((offer) => (
-                        <div key={offer.id} className='receipt-card' style={{height: '230px'}}>
+                    offers.map((offer) => (
+                        <div key={offer.id} className='receipt-card' style={{height: '100%'}}>
                             <Flex vertical justify="space-between" style={{height: '100%'}}>
                                 <div>
                                     <Flex justify="space-between" align="center" style={{ marginBottom: '8px' }}>
-                                        <Tag color={offer.estatus === 'activa' ? 'green' : 'volcano'}>{offer.estatus.toUpperCase()}</Tag>
-                                        <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeOffer(offer.id)} />
+                                        <Tag color={offer.active ? 'green' : 'volcano'}>
+                                            {offer.active ? 'ACTIVO' : 'INACTIVO'}
+                                        </Tag>
+                                        <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleDelete(offer.id)} />
                                     </Flex>
-                                    <Title level={5} style={{ margin: 0, color: '#376b83' }}>{offer.cargo}</Title>
-                                    <Text type="secondary" style={{display: 'block', marginTop: '4px'}}><SolutionOutlined style={{ marginRight: 8 }} />{offer.profesion}</Text>
-                                    <Text style={{display: 'block', marginTop: '4px'}}><DollarOutlined style={{ marginRight: 8 }} />{offer.salario}</Text>
+                                    <Title level={5} style={{ margin: 0, color: '#376b83' }}>{offer.openPosition}</Title>
+                                    <Text type="secondary" style={{display: 'block', marginTop: '4px'}}>{offer.description}</Text>
+                                    <Text type="secondary" style={{display: 'block', marginTop: '4px'}}><SolutionOutlined style={{ marginRight: 8 }} />{offer.professionName}</Text>
+                                    <Text style={{display: 'block', marginTop: '4px'}}><DollarOutlined style={{ marginRight: 8 }} />{offer.salary}</Text>
                                 </div>
                                 <Button type="default" icon={<EditOutlined />} style={{width: '100%', marginTop: '16px'}} onClick={() => handleEditClick(offer)}>
                                     Ver / Editar Detalles
@@ -135,24 +233,53 @@ const EditOffers = () => {
             </div>
 
             {/* Modal que se muestra solo cuando hay una oferta seleccionada para editar */}
-            {ofertaSeleccionada && (
-                <Modal title={<Title level={4}>Editar Oferta de Empleo</Title>} open={isModalVisible} onOk={handleModalSave} onCancel={handleModalCancel} okText="Guardar Cambios" cancelText="Cancelar" width={700} destroyOnClose>
-                    <Flex vertical gap="1.5rem" style={{marginTop: '24px'}}>
-                        <Flex align="center" justify="space-between">
-                            <Text strong>Estado de la oferta:</Text>
-                            <Flex align="center" gap="small">
-                                <Tag color={ofertaSeleccionada.estatus === 'activa' ? 'green' : 'volcano'}>{ofertaSeleccionada.estatus.toUpperCase()}</Tag>
-                                <Switch checked={ofertaSeleccionada.estatus === 'activa'} onChange={handleStatusChangeInModal} />
-                            </Flex>
-                        </Flex>
-                        {/* Componentes reutilizables para los campos editables */}
-                        <EditableField label="Profesión" value={ofertaSeleccionada.profesion} onChange={(v) => handleFieldChangeInModal('profesion', v)} />
-                        <EditableField label="Cargo" value={ofertaSeleccionada.cargo} onChange={(v) => handleFieldChangeInModal('cargo', v)} />
-                        <EditableField label="Salario" value={ofertaSeleccionada.salario} onChange={(v) => handleFieldChangeInModal('salario', v)} />
-                        <EditableField label="Descripción" value={ofertaSeleccionada.descripcion} onChange={(v) => handleFieldChangeInModal('descripcion', v)} isTextArea={true} />
-                    </Flex>
-                </Modal>
-            )}
+            <Modal 
+                title={editingOffer ? 'Editar Oferta de Empleo' : 'Crear Nueva Oferta de Empleo'} 
+                open={isModalVisible} 
+                onOk={handleModalSave} 
+                onCancel={handleModalCancel} 
+                okText="Guardar" 
+                cancelText="Cancelar" 
+                width={700} 
+                destroyOnClose
+            >
+                <Form form={form} layout="vertical" name="offerForm" style={{ marginTop: '24px' }}>
+                    <Title level={5}>Datos de la Oferta</Title>
+                    {editingOffer && ofertaSeleccionada && (
+                    <Form.Item name="active" label="Estado del Cargo" rules={[{ required: true }]} >
+                        <Tag color={ofertaSeleccionada.active ? 'green' : 'volcano'}>
+                            {ofertaSeleccionada.active ? 'ACTIVO' : 'INACTIVO'}
+                        </Tag>
+                        <Switch checked={ofertaSeleccionada.active} onChange={handleStatusChangeInModal} />
+                    </Form.Item>
+                )}
+                    <Form.Item name="professionId" label="Profesión" rules={[{ required: true, message: 'Seleccione una Profesión' }]}>
+                        <Select
+                            placeholder="Selecciona una profesión"
+                            options={professionOptions}
+                            loading={professions.length === 0}
+                            allowClear
+                        />
+                    </Form.Item>
+                    <Form.Item name="zoneId" label="Estado" rules={[{ required: true, message: 'Seleccione un Estado' }]}>
+                        <Select
+                            placeholder="Selecciona un estado"
+                            options={zoneOptions}
+                            loading={zones.length === 0}
+                            allowClear
+                        />
+                    </Form.Item>
+                    <Form.Item name="openPosition" label="Cargo" rules={[{ required: true, message: 'Este campo es requerido' }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="salary" label="Salario" rules={[{ required: true, message: 'Este campo es requerido' }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="description" label="Descripción del Puesto" rules={[{ required: true, message: 'Este campo es requerido' }]}>
+                        <Input />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };
