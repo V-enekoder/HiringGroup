@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Flex, Typography, Button, Input, Modal, Form, Space, Popconfirm, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, BankOutlined } from '@ant-design/icons';
 import '../styles/pag.css'; // Reutilizando tus estilos
+import { bankService } from '../../services/api';
 
 const { Title, Text } = Typography;
 
@@ -19,19 +20,35 @@ const initialBanks = [
 
 const ManageBanks = () => {
     // --- ESTADOS ---
-    const [banks, setBanks] = useState(initialBanks);
+    const [banks, setBanks] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingBank, setEditingBank] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [form] = Form.useForm();
 
+    useEffect(() => {
+        const getAllBanks = async () => {
+            try{
+                const response = await bankService.getAllBanks()
+                const data = response.data
+
+                setBanks(data)
+            }catch(error){
+                console.error('Error al cargar bancos:', error)
+                message.error('Error al cargar los bancos desde el servidor.')
+            }
+        }
+
+        getAllBanks()
+    }, [])
+
     // Memoriza la lista de bancos filtrados
-    const filteredBanks = useMemo(() => {
+    /*const filteredBanks = useMemo(() => {
         if (!searchTerm) return banks;
         return banks.filter(bank =>
             bank.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [banks, searchTerm]);
+    }, [banks, searchTerm]);*/
 
     // --- MANEJADORES DE ACCIONES (CRUD) ---
     const handleCreate = () => {
@@ -46,19 +63,29 @@ const ManageBanks = () => {
         setIsModalVisible(true);
     };
 
-    const handleDelete = (id) => {
-        setBanks(prev => prev.filter(b => b.id !== id));
-        message.success('Banco eliminado correctamente.');
+    const handleDelete = async (id) => {
+        try{
+            await bankService.deleteBank(id)
+            
+            setBanks(prev => prev.filter(b => b.id !== id));
+            message.success('Banco eliminado correctamente.');
+        }catch(error){
+            console.log('Error de validación:', error)
+        }
     };
 
     const handleModalOk = async () => {
         try {
             const values = await form.validateFields();
             if (editingBank) {
+                await bankService.updateBank(editingBank.id, values);
+
                 setBanks(prev => prev.map(b => b.id === editingBank.id ? { ...b, ...values } : b));
                 message.success('Banco actualizado con éxito.');
             } else {
-                const newBank = { id: Date.now(), ...values };
+                const response = await bankService.createNewBank(values)
+                const newBank = response.data
+
                 setBanks(prev => [newBank, ...prev]);
                 message.success('Nuevo banco añadido con éxito.');
             }
@@ -93,8 +120,8 @@ const ManageBanks = () => {
 
             {/* --- CUADRÍCULA DE BANCOS --- */}
             <div className='receipts-grid'>
-                {filteredBanks.length > 0 ? (
-                    filteredBanks.map((bank) => (
+                {banks.length > 0 ? (
+                    banks.map((bank) => (
                         <div key={bank.id} className='receipt-card' style={{height:'90px'}}>
                             <Flex justify="space-between" align="start">
                                 {/* Contenido principal de la tarjeta */}

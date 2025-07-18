@@ -20,8 +20,8 @@ const ManageCompanies = () => {
                 const data = response.data
                 setCompanies(data)
             }catch(error){
-                console.error('Error al cargar empresas:', error);
-                message.error('Error al cargar las empresas desde el servidor.');
+                console.error('Error al cargar empresas:', error)
+                message.error('Error al cargar las empresas desde el servidor.')
             }
         }
 
@@ -55,12 +55,12 @@ const ManageCompanies = () => {
 
     const handleDelete = async (id) => {
         try{
-            const response = await companyService.deleteCompany(id)
+            await companyService.deleteCompany(id)
 
             setCompanies(prev => prev.filter(c => c.company_id !== id));
             message.success('Empresa eliminada correctamente.');
         }catch(error){
-            console.log('Error de validación:', error);
+            console.log('Error de validación:', error)
         }
         
     };

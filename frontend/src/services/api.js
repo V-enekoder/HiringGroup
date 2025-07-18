@@ -51,3 +51,10 @@ export const jobOffersService = {
 export const postulationService = {
     getAllPostulations: () => apiClient.get('/postulations/')
 }
+
+export const bankService = {
+    createNewBank: (data) => apiClient.post('/banks/', data),
+    updateBank: (bankId, data) => apiClient.put(`/banks/${bankId}`, data),
+    getAllBanks: () => apiClient.get('/banks/'),
+    deleteBank: (bankId) => apiClient.delete(`/banks/${bankId}`)
+}
