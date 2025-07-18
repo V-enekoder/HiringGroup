@@ -36,3 +36,18 @@ export const candidateService = {
     updateProfessionalInfo: (candidateId, data) => apiClient.put(`/candidates/${candidateId}/professional`, data),
     getCandidateProfile: (candidateId) => apiClient.get(`/candidates/${candidateId}`),
 };
+
+export const companyService = {
+    createNewCompany: (data) => apiClient.post('/companies/', data),
+    updateCompany: (companyId, data) => apiClient.put(`/companies/${companyId}`, data),
+    getAllCompanies: () => apiClient.get('/companies/'),
+    deleteCompany: (companyId) => apiClient.delete(`/companies/${companyId}`)
+}
+
+export const jobOffersService = {
+    getActiveOffers: () => apiClient.get('/joboffers/active')
+}
+
+export const postulationService = {
+    getAllPostulations: () => apiClient.get('/postulations/')
+}

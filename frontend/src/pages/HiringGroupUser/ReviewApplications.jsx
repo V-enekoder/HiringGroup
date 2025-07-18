@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Flex, Typography, Space, Button, Select, Input, Divider, List, Modal, Form, InputNumber, message, Tag, Avatar, Descriptions } from 'antd';
 import { UserOutlined, SearchOutlined, SolutionOutlined, DollarOutlined, TeamOutlined, IdcardOutlined, ClearOutlined, PhoneOutlined, MailOutlined, ToolOutlined, BookOutlined }  from '@ant-design/icons';
 import '../styles/pag.css';
+import { jobOffersService, postulationService, companyService } from '../../services/api';
 
 const { Title, Text, Paragraph } = Typography;
-const initialCompanies = [{ id: 1, name: 'Tech Solutions Inc.' }, { id: 2, name: 'Innovate Marketing' }];
 const initialOffers = [
     { id: 101, companyId: 1, cargo: 'Frontend Developer (Senior)', estatus: 'activa', profesion: 'Ing. de Software', salario: 5500 },
     { id: 102, companyId: 2, cargo: 'Diseñador de Producto', estatus: 'activa', profesion: 'Diseño UX/UI', salario: 4800 },
@@ -51,7 +51,9 @@ const initialApplications = [
 
 const ReviewApplications = () => {
     // --- ESTADOS ---
-    const [offers, setOffers] = useState(initialOffers);
+    const [offers, setOffers] = useState([]);
+    const [postulations, setPostulations] = useState([]);
+    const [companies, setCompanies] = useState([]);
     const [filterCompany, setFilterCompany] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     
@@ -67,7 +69,47 @@ const ReviewApplications = () => {
     
     const [form] = Form.useForm();
 
-    const filteredOffers = useMemo(() => {
+    useEffect(() => {
+        const getActiveJobOffers = async () => {
+            try{
+                const response = await jobOffersService.getActiveOffers()
+                const data = response.data
+                console.log("Ofertas: ", data)
+                setOffers(data)
+            }catch(error){
+                console.error('Error al cargar ofertas de empleo:', error)
+                message.error('Error al cargar las ofertas de empleo desde el servidor.')
+            }
+        }
+
+        const getAllPostulations = async () => {
+            try{
+                const response = await postulationService.getAllPostulations()
+                const data = response.data
+                setPostulations(data)
+            }catch(error){
+                console.error('Error al cargar las postulaciones de empleo:', error)
+                message.error('Error al cargar postulaciones desde el servidor.')
+            }
+        }
+
+        const getAllCompanies = async () => {
+            try{
+                const response = await companyService.getAllCompanies()
+                const data = response.data
+                setCompanies(data)
+            }catch(error){
+                console.error('Error al cargar empresas:', error);
+                message.error('Error al cargar las empresas desde el servidor.');
+            }
+        }
+
+        getActiveJobOffers()
+        getAllPostulations()
+        getAllCompanies()
+    }, [])
+
+    /*const filteredOffers = useMemo(() => {
         return offers.filter(offer => {
             const company = initialCompanies.find(c => c.id === offer.companyId);
             const matchStatus = offer.estatus === 'activa';
@@ -75,7 +117,7 @@ const ReviewApplications = () => {
             const matchSearch = !searchTerm || offer.cargo.toLowerCase().includes(searchTerm.toLowerCase()) || company.name.toLowerCase().includes(searchTerm.toLowerCase());
             return matchStatus && matchCompany;
         });
-    }, [offers, filterCompany, searchTerm]);
+    }, [offers, filterCompany, searchTerm]);*/
     
     const limpiarFiltros = () => {
         setFiltroEstatus(null);
@@ -134,7 +176,7 @@ const ReviewApplications = () => {
             <div className='contenedorTarjeta' style={{ padding: '16px 24px' }}>
                 <Flex gap="middle"  align="center">
                     <Text strong style={{ whiteSpace: 'nowrap' }}>Filtrar por:</Text>
-                    <Select placeholder="Filtrar por empresa" options={initialCompanies.map(c => ({ value: c.id, label: c.name }))} value={filterCompany} onChange={setFilterCompany} style={{ flexGrow: 1, minWidth: 200 }} allowClear />
+                    <Select placeholder="Filtrar por empresa" options={companies.map(c => ({ value: c.id, label: c.companyName }))} value={filterCompany} onChange={setFilterCompany} style={{ flexGrow: 1, minWidth: 200 }} allowClear />
                     <Input placeholder="Buscar por cargo..." prefix={<SearchOutlined />} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ flexGrow: 2, minWidth: 250 }} allowClear />
                     <Button icon={<ClearOutlined />} onClick={limpiarFiltros}>Limpiar Filtros</Button>
                 </Flex>
@@ -142,9 +184,9 @@ const ReviewApplications = () => {
 
             {/* --- CUADRÍCULA DE OFERTAS (VISTA DE TARJETAS) --- */}
             <div className='receipts-grid'>
-                {filteredOffers.length > 0 ? (
-                    filteredOffers.map(offer => {
-                        const company = initialCompanies.find(c => c.id === offer.companyId);
+                {offers.length > 0 ? (
+                    offers.map(offer => {
+                        const company = offer.companyName;
                         const applicantCount = initialApplications.filter(app => app.offerId === offer.id).length;
                         return (
                             <div key={offer.id} className='receipt-card' style={{height:'100%'}}>
@@ -154,18 +196,21 @@ const ReviewApplications = () => {
                                             <Tag icon={<TeamOutlined />} color={applicantCount > 0 ? "blue" : "default"}>
                                                 {applicantCount} Postulantes
                                             </Tag>
-                                            <Text strong>{company.name}</Text>
+                                            <Text strong>{company}</Text>
                                         </Flex>
                                         <Title level={5} style={{ margin: '0 0 8px 0', color: '#376b83' }}>
-                                            {offer.cargo}
+                                            {offer.openPosition}
                                         </Title>
                                         <Text type="secondary" style={{display: 'block'}}>
                                             <SolutionOutlined style={{ marginRight: 8 }} />
-                                            {offer.profesion}
+                                            {offer.professionName}
+                                        </Text>
+                                        <Text type="secondary" style={{display: 'block'}}>
+                                            {offer.description}
                                         </Text>
                                         <Text style={{display: 'block', marginTop: '4px'}}>
                                             <DollarOutlined style={{ marginRight: 8 }} />
-                                            {offer.salario} USD/mes
+                                            {offer.salary} USD/mes
                                         </Text>
                                     </div>
                                     <Button 
