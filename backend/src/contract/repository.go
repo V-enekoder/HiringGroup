@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateContract(contract *schema.Contract, candidateID uint) error {
+func CreateContract(contract *schema.Contract, candidateID uint, postulationID uint) error {
 	db := config.DB
 	return db.Transaction(func(tx *gorm.DB) error {
 		// 1. Verificar si ya existe un contrato para esta postulación dentro de la transacción
@@ -24,6 +24,10 @@ func CreateContract(contract *schema.Contract, candidateID uint) error {
 
 		// 3. Actualizar al candidato a Hired = true
 		if err := tx.Model(&schema.Candidate{}).Where("id = ?", candidateID).Update("hired", true).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&schema.Postulation{}).Where("id = ?", postulationID).Update("active", false).Error; err != nil {
 			return err
 		}
 		return nil

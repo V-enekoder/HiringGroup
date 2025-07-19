@@ -74,6 +74,19 @@ func GetPostulationByIDService(id uint) (PostulationResponseDTO, error) {
 	return mapToResponseDTO(p), nil
 }
 
+func GetPostulationByJobOfferService(jobOfferID uint) ([]PostulationResponseDTO, error) {
+	postulations, err := GetPostulationsByJobOfferRepository(jobOfferID)
+	if err != nil {
+		return nil, err
+	}
+
+	var responseDTOs []PostulationResponseDTO
+	for _, postulation := range postulations {
+		responseDTOs = append(responseDTOs, mapToResponseDTO(postulation))
+	}
+	return responseDTOs, nil
+}
+
 func UpdatePostulationService(id uint, dto PostulationUpdateDTO) (PostulationResponseDTO, error) {
 	updateData := map[string]interface{}{"active": *dto.Active}
 

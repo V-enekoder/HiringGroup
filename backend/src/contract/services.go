@@ -36,7 +36,7 @@ func CreateContractService(dto ContractCreateDTO) (ContractResponseDTO, error) {
 		Active:        true,
 	}
 
-	if err := CreateContract(&newContract, postulation.CandidateID); err != nil {
+	if err := CreateContract(&newContract, postulation.CandidateID, postulation.ID); err != nil {
 		return ContractResponseDTO{}, err
 	}
 

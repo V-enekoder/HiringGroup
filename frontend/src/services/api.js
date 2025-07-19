@@ -53,7 +53,8 @@ export const jobOffersService = {
 }
 
 export const postulationService = {
-    getAllPostulations: () => apiClient.get('/postulations/')
+    getAllPostulations: () => apiClient.get('/postulations/'),
+    getPostulationsByJobOffer: (jobOfferId) => apiClient.get(`/postulations/joboffer/${jobOfferId}`)
 }
 
 export const bankService = {
@@ -69,4 +70,20 @@ export const professionService = {
 
 export const zoneService = {
     getAllZones: () => apiClient.get('/zones/')
+}
+
+export const curriculumService = {
+    getCurriculumByCandidateId: (candidateId) => apiClient.get(`/curriculums/candidate/${candidateId}`)
+}
+
+export const contractService = {
+    createNewContract: (data) => apiClient.post('/contracts/', data)
+}
+
+export const contractingPeriodService = {
+    getAllContractingPeriods: () => apiClient.get('/contracting-periods/')
+}
+
+export const emergencyContactService = {
+    getEmergencyContactbyCandidateId: (candidateId) => apiClient.get(`/emergency-contacts/${candidateId}`)
 }

@@ -40,6 +40,18 @@ func GetPostulationByIDRepository(id uint) (schema.Postulation, error) {
 	return p, err
 }
 
+func GetPostulationsByJobOfferRepository(jobOfferID uint) ([]schema.Postulation, error) {
+	var postulations []schema.Postulation
+	db := config.DB
+	err := db.
+		Preload("Candidate.User").
+		Preload("JobOffer.Company").
+		Preload("Contract").
+		Where("job_id = ? AND active = ?", jobOfferID, true).
+		Find(&postulations).Error
+	return postulations, err
+}
+
 func UpdatePostulationRepository(id uint, data map[string]interface{}) error {
 	db := config.DB
 	result := db.Model(&schema.Postulation{}).Where("id = ?", id).Updates(data)

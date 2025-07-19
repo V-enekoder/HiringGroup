@@ -2,58 +2,19 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Flex, Typography, Space, Button, Select, Input, Divider, List, Modal, Form, InputNumber, message, Tag, Avatar, Descriptions } from 'antd';
 import { UserOutlined, SearchOutlined, SolutionOutlined, DollarOutlined, TeamOutlined, IdcardOutlined, ClearOutlined, PhoneOutlined, MailOutlined, ToolOutlined, BookOutlined }  from '@ant-design/icons';
 import '../styles/pag.css';
-import { jobOffersService, postulationService, companyService } from '../../services/api';
+import { jobOffersService, postulationService, companyService, candidateService, curriculumService, contractingPeriodService, emergencyContactService, contractService } from '../../services/api';
 
 const { Title, Text, Paragraph } = Typography;
-const initialOffers = [
-    { id: 101, companyId: 1, cargo: 'Frontend Developer (Senior)', estatus: 'activa', profesion: 'Ing. de Software', salario: 5500 },
-    { id: 102, companyId: 2, cargo: 'Diseñador de Producto', estatus: 'activa', profesion: 'Diseño UX/UI', salario: 4800 },
-    { id: 103, companyId: 1, cargo: 'Backend Developer (Node.js)', estatus: 'inactiva', profesion: 'Ing. de Software', salario: 6000 },
-];
-const initialCandidates = [
-    { 
-        id: 201, 
-        name: 'Ana Martínez', 
-        email: 'ana.martinez@email.com',
-        phone: '555-123-4567',
-        profession: 'Ingeniera de Software Senior',
-        summary: 'Desarrolladora de software con más de 5 años de experiencia en el ecosistema de React, especializada en la creación de interfaces de usuario escalables y de alto rendimiento.',
-        skills: ['React', 'TypeScript', 'Node.js', 'Ant Design', 'GraphQL', 'CI/CD'],
-        experience: [
-            { id: 1, company: 'Tech Solutions Inc.', role: 'Frontend Developer', period: '2020 - Presente' },
-            { id: 2, company: 'Web Innovators', role: 'Jr. Developer', period: '2018 - 2020' },
-        ],
-        education: [
-            { id: 1, institution: 'Universidad Central', degree: 'Ingeniería en Informática', period: '2014 - 2018' }
-        ]
-    },
-    { 
-        id: 202, 
-        name: 'Juan Pérez',
-        email: 'juan.perez@email.com',
-        phone: '555-987-6543',
-        profession: 'Diseñador de Producto',
-        summary: 'Diseñador UX/UI apasionado por crear productos digitales intuitivos y centrados en el usuario. Experto en metodologías ágiles y design thinking.',
-        skills: ['Figma', 'Sketch', 'Adobe XD', 'User Research', 'Prototyping'],
-        experience: [
-            { id: 1, company: 'Innovate Marketing', role: 'UX/UI Designer', period: '2019 - Presente' },
-        ],
-        education: [
-            { id: 1, institution: 'Instituto de Diseño', degree: 'Diseño Gráfico', period: '2015 - 2019' }
-        ]
-    },
-];
-const initialApplications = [
-    { offerId: 101, candidateId: 201 },
-    { offerId: 101, candidateId: 202 },
-    { offerId: 102, candidateId: 202 },
-];
 
 const ReviewApplications = () => {
     // --- ESTADOS ---
     const [offers, setOffers] = useState([]);
-    const [postulations, setPostulations] = useState([]);
+    const [postulationsByOffer, setPostulationsByOffer] = useState({});
     const [companies, setCompanies] = useState([]);
+    const [candidates, setCandidates] = useState([])
+    const [curriculum, setCurriculum] = useState(null)
+    const [contractingPeriods, setContractingPeriods] = useState([])
+    const [emergencyContact, setEmergencyContact] = useState(null)
     const [filterCompany, setFilterCompany] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     
@@ -67,14 +28,14 @@ const ReviewApplications = () => {
     const [selectedHire, setSelectedHire] = useState(null);
     const [selectedCandidateForCv, setSelectedCandidateForCv] = useState(null); 
     
-    const [form] = Form.useForm();
+    const [form] = Form.useForm()
 
     useEffect(() => {
         const getActiveJobOffers = async () => {
             try{
                 const response = await jobOffersService.getActiveOffers()
                 const data = response.data
-                console.log("Ofertas: ", data)
+                
                 setOffers(data)
             }catch(error){
                 console.error('Error al cargar ofertas de empleo:', error)
@@ -89,7 +50,6 @@ const ReviewApplications = () => {
                 setPostulations(data)
             }catch(error){
                 console.error('Error al cargar las postulaciones de empleo:', error)
-                message.error('Error al cargar postulaciones desde el servidor.')
             }
         }
 
@@ -104,10 +64,43 @@ const ReviewApplications = () => {
             }
         }
 
+        const getAllContractingPeriods = async () => {
+            try{
+                const response = await contractingPeriodService.getAllContractingPeriods()
+                const data = response.data
+                setContractingPeriods(data)
+            }catch(error){
+                console.error('Error al cargar periodos de contratación:', error);
+                message.error('Error al cargar los periodos desde el servidor.');
+            }
+        }
+
         getActiveJobOffers()
         getAllPostulations()
         getAllCompanies()
+        getAllContractingPeriods()
     }, [])
+
+    useEffect(() => {
+        const getPostulationsPerOffer = async () => {
+            const result = {};
+
+            for (const offer of offers) {
+                try {
+                    const response = await postulationService.getPostulationsByJobOffer(offer.id);
+                    result[offer.id] = response.data;
+                } catch (error) {
+                    console.error(`Error al cargar postulaciones para la oferta ${offer.id}:`, error);
+                }
+            }
+
+            setPostulationsByOffer(result);
+        };
+
+        if (offers.length > 0) {
+            getPostulationsPerOffer();
+        }
+    }, [offers]);
 
     /*const filteredOffers = useMemo(() => {
         return offers.filter(offer => {
@@ -123,10 +116,26 @@ const ReviewApplications = () => {
         setFiltroEstatus(null);
         setSearchTerm('');
     };
+
     // --- MANEJADORES DE MODALES ---
-    const handleOpenApplicantsModal = (offer) => {
+    const handleOpenApplicantsModal = async (offer) => {
         setSelectedOffer(offer);
         setIsApplicantsModalVisible(true);
+
+        try {
+            const postulations = postulationsByOffer[offer.id] || [];
+
+            const candidatePromises = postulations.map(p =>
+                candidateService.getCandidateProfile(p.candidateId).then(res => res.data)
+            );
+
+            const candidateData = await Promise.all(candidatePromises);
+            setCandidates(candidateData);
+
+        } catch (error) {
+            console.error("Error al cargar candidatos:", error);
+            message.error("No se pudieron cargar los candidatos.");
+        }
     };
 
     const handleCloseApplicantsModal = () => {
@@ -134,11 +143,23 @@ const ReviewApplications = () => {
         setSelectedOffer(null);
     };
 
-    const handleOpenHireModal = (offer, candidate) => {
+    const handleOpenHireModal = async (offer, candidate) => {
+        console.log("Oferta: ", offer)
+        console.log("Candidato: ", candidate)
         setSelectedHire({ offer, candidate });
-        form.setFieldsValue({ salary: offer.salario });
+        form.setFieldsValue({ salary: offer.salary });
         setIsApplicantsModalVisible(false); // Cerramos el primer modal
         setIsHireModalVisible(true);       // Abrimos el segundo
+
+        try{
+            const response = await emergencyContactService.getEmergencyContactbyCandidateId(candidate.candidate_id)
+            const data = response.data
+            console.log("Contacto: ", data)
+            setEmergencyContact(data)
+        }catch(error){
+            console.error("Error al cargar contacto de emergencia:", error);
+            message.error("No se pudieron cargar contanco.");
+        }
     };
 
     const handleCloseHireModal = () => {
@@ -150,24 +171,55 @@ const ReviewApplications = () => {
     const handleFinalizeHire = async () => {
         try {
             const values = await form.validateFields();
-            console.log('CONTRATACIÓN FINALIZADA:', { candidateId: selectedHire.candidate.id, offerId: selectedHire.offer.id, contractDetails: values });
-            setOffers(prev => prev.map(o => o.id === selectedHire.offer.id ? { ...o, estatus: 'inactiva' } : o));
+            const offerPostulations = postulationsByOffer[selectedHire.offer.id];
+            const matchedPostulation = offerPostulations.find(
+                (p) => p.candidateId === selectedHire.candidate.candidate_id
+            );
+            const postulationId = matchedPostulation?.id;
+            const dataToSend = {
+                periodId: values.periodId,
+                postulationId: postulationId
+            };
+
+            await contractService.createNewContract(dataToSend)
             message.success(`${selectedHire.candidate.name} ha sido contratado exitosamente!`);
+
+            const updatedPostulations = { ...postulationsByOffer };
+            updatedPostulations[selectedHire.offer.id] = offerPostulations.filter(
+                (p) => p.candidateId !== selectedHire.candidate.candidate_id
+            );
+            setPostulationsByOffer(updatedPostulations);
+            
             handleCloseHireModal();
         } catch (error) {
             console.log('Error en la finalización:', error);
         }
     };
 
-     const handleOpenCvModal = (candidate) => {
+    const handleOpenCvModal = async (candidate) => {
         setSelectedCandidateForCv(candidate);
         setIsCvModalVisible(true);
+
+        try{
+            const response = await curriculumService.getCurriculumByCandidateId(candidate.candidate_id)
+            const data = response.data
+
+            setCurriculum(data)
+        }catch(error){
+            console.error("Error al cargar curriculum:", error)
+            message.error("No se pudo cargar el curriculum.")
+        }
     };
 
     const handleCloseCvModal = () => {
         setIsCvModalVisible(false);
         setTimeout(() => setSelectedCandidateForCv(null), 300);
     };
+
+    const periodOptions = contractingPeriods.map(c => ({
+        label: c.name,     // lo que se ve en el Select
+        value: c.id        // lo que se guarda en el form
+    }));
 
     return (
         <div className='contenedorMain2'>
@@ -187,7 +239,7 @@ const ReviewApplications = () => {
                 {offers.length > 0 ? (
                     offers.map(offer => {
                         const company = offer.companyName;
-                        const applicantCount = initialApplications.filter(app => app.offerId === offer.id).length;
+                        const applicantCount = postulationsByOffer[offer.id]?.length || 0;
                         return (
                             <div key={offer.id} className='receipt-card' style={{height:'100%'}}>
                                 <Flex vertical justify="space-between" style={{height: '100%'}}>
@@ -236,7 +288,7 @@ const ReviewApplications = () => {
             {/* --- MODAL 1: LISTA DE POSTULANTES --- */}
             {selectedOffer && (
                 <Modal
-                    title={`Postulantes para: ${selectedOffer.cargo}`}
+                    title={`Postulantes para: ${selectedOffer.openPosition}`}
                     open={isApplicantsModalVisible}
                     onCancel={handleCloseApplicantsModal}
                     footer={[ <Button key="back" onClick={handleCloseApplicantsModal}>Cerrar</Button> ]}
@@ -244,7 +296,7 @@ const ReviewApplications = () => {
                 >
                     <List
                         itemLayout="horizontal"
-                        dataSource={initialApplications.filter(app => app.offerId === selectedOffer.id).map(app => initialCandidates.find(c => c.id === app.candidateId))}
+                        dataSource={candidates}
                         renderItem={candidate => (
                             <List.Item
                                 actions={[ 
@@ -263,7 +315,7 @@ const ReviewApplications = () => {
             )}
 
             {/* --- MODAL 2: PROCESO DE CONTRATACIÓN --- */}
-            {selectedHire && (
+            {selectedHire && emergencyContact && (
                 <Modal
                     title={`Contratar a ${selectedHire.candidate.name}`}
                     open={isHireModalVisible}
@@ -275,8 +327,13 @@ const ReviewApplications = () => {
                 >
                     <Form form={form} layout="vertical" style={{marginTop: '24px'}}>
                         <Title level={5}>Definir Condiciones del Contrato</Title>
-                        <Form.Item name="contractDuration" label="Tiempo de Contratación" rules={[{required: true}]}>
-                            <Select options={[{value: '1m', label: '1 Mes'}, {value: '6m', label: '6 Meses'}, {value: '1y', label: '1 Año'}, {value: 'indefinite', 'label': 'Indefinido'}]} />
+                        <Form.Item name="periodId" label="Tiempo de Contratación" rules={[{required: true}]}>
+                            <Select
+                                placeholder="Seleccione un tiempo de contratación"
+                                options={periodOptions}
+                                loading={contractingPeriods.length === 0}
+                                allowClear
+                            />
                         </Form.Item>
                         <Form.Item name="salary" label="Salario Mensual a Devengar (USD)" rules={[{required: true}]}>
                             <InputNumber prefix={<DollarOutlined />} style={{ width: '100%' }} />
@@ -286,15 +343,15 @@ const ReviewApplications = () => {
                     <Title level={5} style={{marginTop: '24px'}}>Verificar Datos del Candidato</Title>
                     <Descriptions bordered column={1} size="small">
                         <Descriptions.Item label="Tipo de Sangre">{selectedHire.candidate.bloodType || 'No especificado'}</Descriptions.Item>
-                        <Descriptions.Item label="Contacto de Emergencia">{selectedHire.candidate.emergencyContact || 'No especificado'}</Descriptions.Item>
-                        <Descriptions.Item label="Teléfono de Emergencia">{selectedHire.candidate.emergencyPhone || 'No especificado'}</Descriptions.Item>
-                        <Descriptions.Item label="Banco">{selectedHire.candidate.bank || 'No especificado'}</Descriptions.Item>
-                        <Descriptions.Item label="Nro. de Cuenta">{selectedHire.candidate.accountNumber || 'No especificado'}</Descriptions.Item>
+                        <Descriptions.Item label="Contacto de Emergencia">{emergencyContact.name || 'No especificado'}</Descriptions.Item>
+                        <Descriptions.Item label="Teléfono de Emergencia">{emergencyContact.phone_number || 'No especificado'}</Descriptions.Item>
+                        <Descriptions.Item label="Banco">{selectedHire.candidate.bank_name || 'No especificado'}</Descriptions.Item>
+                        <Descriptions.Item label="Nro. de Cuenta">{selectedHire.candidate.bankAccount || 'No especificado'}</Descriptions.Item>
                     </Descriptions>
                 </Modal>
             )}
          {/* ---MODAL 3 VISTA DE CURRÍCULUM --- */}
-            {selectedCandidateForCv && (
+            {selectedCandidateForCv && curriculum && (
                 <Modal
                     // Quitamos el título por defecto para tener control total del encabezado
                     title={null} 
@@ -311,10 +368,10 @@ const ReviewApplications = () => {
                             <Avatar size={100} icon={<UserOutlined />} />
                             <Flex vertical>
                                 <Title level={3} style={{ margin: 0 }}>{selectedCandidateForCv.name}</Title>
-                                <Text type="secondary" style={{ fontSize: '16px' }}>{selectedCandidateForCv.profession}</Text>
+                                <Text type="secondary" style={{ fontSize: '16px' }}>{curriculum.profession_name}</Text>
                                 <Space style={{ marginTop: '8px' }}>
                                     <Text><MailOutlined style={{ marginRight: 4 }}/> {selectedCandidateForCv.email}</Text>
-                                    <Text><PhoneOutlined style={{ marginRight: 4 }}/> {selectedCandidateForCv.phone}</Text>
+                                    <Text><PhoneOutlined style={{ marginRight: 4 }}/> {selectedCandidateForCv.phoneNumber}</Text>
                                 </Space>
                             </Flex>
                         </Flex>
@@ -324,24 +381,24 @@ const ReviewApplications = () => {
                         {/* --- SECCIÓN: RESUMEN PROFESIONAL --- */}
                         <div>
                             <Title level={5}>Resumen Profesional</Title>
-                            <Paragraph type="secondary">{selectedCandidateForCv.summary}</Paragraph>
+                            <Paragraph type="secondary">{curriculum.resume}</Paragraph>
                         </div>
 
                         {/* --- SECCIÓN: HABILIDADES --- */}
                         <div>
                             <Title level={5}><ToolOutlined style={{marginRight: 8}}/> Habilidades</Title>
                             <Flex gap="small" wrap="wrap">
-                                {selectedCandidateForCv.skills.map(skill => <Tag key={skill} bordered={false} style={{padding: '4px 10px', fontSize: '14px'}}>{skill}</Tag>)}
+                                <Text>{curriculum.skills}</Text>
                             </Flex>
                         </div>
 
                         {/* --- SECCIÓN: EXPERIENCIA LABORAL --- */}
                         <div>
                             <Title level={5}><IdcardOutlined style={{marginRight: 8}}/> Experiencia Laboral</Title>
-                            {selectedCandidateForCv.experience.map(exp => (
+                            {curriculum.laboral_experiences.map(exp => (
                                 <div key={exp.id} style={{ marginBottom: 16 }}>
-                                    <Text strong>{exp.role}</Text>
-                                    <Text type="secondary" style={{display: 'block'}}>{exp.company} | {exp.period}</Text>
+                                    <Text strong>{exp.job_title}</Text>
+                                    <Text type="secondary" style={{display: 'block'}}>{exp.company} | {exp.start_date}</Text>
                                 </div>
                             ))}
                         </div>
@@ -349,12 +406,9 @@ const ReviewApplications = () => {
                         {/* --- SECCIÓN: EDUCACIÓN --- */}
                         <div>
                             <Title level={5}><BookOutlined style={{marginRight: 8}}/> Educación</Title>
-                             {selectedCandidateForCv.education.map(edu => (
-                                <div key={edu.id}>
-                                    <Text strong>{edu.degree}</Text>
-                                    <Text type="secondary" style={{display: 'block'}}>{edu.institution} | {edu.period}</Text>
+                                <div>
+                                    <Text type="secondary" style={{display: 'block'}}>{curriculum.university_of_graduation} </Text>
                                 </div>
-                            ))}
                         </div>
                     </Flex>
                 </Modal>
