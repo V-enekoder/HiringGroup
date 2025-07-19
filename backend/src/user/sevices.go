@@ -46,15 +46,8 @@ func RegisterUserService(dto RegisterRequestDTO) error {
 			PhoneNumber: dto.PhoneNumber,
 			Address:     dto.Address,
 			BloodType:   dto.BloodType,
-		}
-	case 3: // Asumimos rol de Empresa
-		if dto.CompanyName == "" {
-			return errors.New("company name is required for a company")
-		}
-		profile = &schema.Company{
-			Name:    dto.CompanyName,
-			Sector:  dto.CompanySector,
-			Address: dto.CompanyAddress,
+			BankID:      dto.BankID, // Puede ser nil
+			BankAccount: dto.BankAccount,
 		}
 	default:
 		return fmt.Errorf("invalid or unsupported role id: %d", dto.RoleID)

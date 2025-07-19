@@ -16,6 +16,7 @@ func mapToResponseDTO(p schema.Postulation) PostulationResponseDTO {
 		CandidateID:         p.CandidateID,
 		CandidateName:       p.Candidate.User.Name + " " + p.Candidate.LastName,
 		CandidateEmail:      p.Candidate.User.Email,
+		JobOfferID:          p.JobID,
 		JobOfferPosition:    p.JobOffer.OpenPosition,
 		JobOfferSalary:      p.JobOffer.Salary,
 		JobOfferCompanyName: p.JobOffer.Company.Name,

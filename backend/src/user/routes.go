@@ -17,7 +17,7 @@ func RegisterRoutes(router *gin.Engine) {
 		users.DELETE("/:id", DeleteUserbyIdController)
 
 		// --- NUEVAS RUTAS DE AUTENTICACIÓN ---
-		users.POST("/register", RegisterController) // Reemplaza al antiguo POST "/"
+		users.POST("/register", RegisterController)
 		users.POST("/login", LoginController)
 	}
 }

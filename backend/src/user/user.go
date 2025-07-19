@@ -36,11 +36,8 @@ type RegisterRequestDTO struct {
 	PhoneNumber string `json:"phone_number"`
 	Address     string `json:"address"`
 	BloodType   string `json:"blood_type"`
-
-	// --- Campos específicos para el perfil de EMPRESA ---
-	CompanyName    string `json:"company_name"`
-	CompanySector  string `json:"company_sector"`
-	CompanyAddress string `json:"company_address"`
+	BankID      *uint  `json:"bankId" binding:"required"`      // Nullable, puede ser nil
+	BankAccount string `json:"bankAccount" binding:"required"` // Requerido para crear un candidato
 }
 
 // LoginRequestDTO define la estructura para la petición de login.

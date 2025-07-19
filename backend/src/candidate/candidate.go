@@ -13,6 +13,8 @@ type CandidateCreateDTO struct {
 	Address     string    `json:"address"`
 	PhoneNumber string    `json:"phoneNumber"`
 	DateOfBirth time.Time `json:"dateOfBirth" binding:"required"`
+	BankID      *uint     `json:"bankId" binding:"required"`      // Nullable, puede ser nil
+	BankAccount string    `json:"bankAccount" binding:"required"` // Requerido para crear un candidato
 }
 
 type CandidateUpdateDTO struct {
@@ -38,4 +40,7 @@ type CandidateResponseDTO struct {
 	PhoneNumber string    `json:"phoneNumber"`
 	DateOfBirth time.Time `json:"dateOfBirth"`
 	Hired       bool      `json:"hired"`
+	BankID      *uint     `json:"bankId"`
+	BankName    string    `json:"bank_name"`   // Nullable, puede ser nil
+	BankAccount string    `json:"bankAccount"` // Requerido para crear un candidato
 }
