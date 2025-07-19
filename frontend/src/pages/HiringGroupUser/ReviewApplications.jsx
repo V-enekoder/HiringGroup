@@ -184,12 +184,14 @@ const ReviewApplications = () => {
             await contractService.createNewContract(dataToSend)
             message.success(`${selectedHire.candidate.name} ha sido contratado exitosamente!`);
 
+            setOffers(prev => prev.filter(c => c.id !== selectedHire.offer.id));
+
             const updatedPostulations = { ...postulationsByOffer };
             updatedPostulations[selectedHire.offer.id] = offerPostulations.filter(
                 (p) => p.candidateId !== selectedHire.candidate.candidate_id
             );
             setPostulationsByOffer(updatedPostulations);
-            
+
             handleCloseHireModal();
         } catch (error) {
             console.log('Error en la finalización:', error);
