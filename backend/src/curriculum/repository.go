@@ -64,6 +64,17 @@ func GetCurriculumByIDRepository(id uint) (schema.Curriculum, error) {
 	return cv, err
 }
 
+func GetCurriculumByCandidateIDRepository(candidateID uint) (schema.Curriculum, error) {
+	var cv schema.Curriculum
+	err := config.DB.
+		Preload("Candidate.User"). // Precargamos el Candidato y su Usuario anidado
+		Preload("Profession").
+		Preload("LaboralExperiences").
+		Where("candidate_id = ?", candidateID).
+		First(&cv).Error
+	return cv, err
+}
+
 // UpdateCurriculumRepository actualiza un currículum.
 func UpdateCurriculumRepository(id uint, data map[string]interface{}) error {
 	result := config.DB.Model(&schema.Curriculum{}).Where("id = ?", id).Updates(data)

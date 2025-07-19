@@ -100,6 +100,14 @@ func GetCurriculumByIDService(id uint) (CurriculumResponseDTO, error) {
 	return mapToCurriculumResponseDTO(cv), nil
 }
 
+func GetCurriculumByCandidateIDService(id uint) (CurriculumResponseDTO, error) {
+	cv, err := GetCurriculumByCandidateIDRepository(id)
+	if err != nil {
+		return CurriculumResponseDTO{}, err
+	}
+	return mapToCurriculumResponseDTO(cv), nil
+}
+
 // UpdateCurriculumService maneja la actualización de un currículum.
 func UpdateCurriculumService(id uint, dto CurriculumUpdateDTO) (CurriculumResponseDTO, error) {
 	// Validar que la profesión a la que se cambia existe.

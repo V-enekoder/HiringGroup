@@ -62,6 +62,25 @@ func GetCurriculumByIDController(c *gin.Context) {
 	c.JSON(http.StatusOK, cv)
 }
 
+func GetCurriculumByCandidateIDController(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+		return
+	}
+
+	cv, err := GetCurriculumByCandidateIDService(uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Curriculum not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve curriculum"})
+		return
+	}
+	c.JSON(http.StatusOK, cv)
+}
+
 // UpdateCurriculumController actualiza un currículum.
 func UpdateCurriculumController(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)

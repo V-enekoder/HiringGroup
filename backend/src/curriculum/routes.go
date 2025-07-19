@@ -9,6 +9,7 @@ func RegisterRoutes(router *gin.Engine) {
 		cvs.POST("/", CreateCurriculumController)
 		cvs.GET("/", GetAllCurriculumsController)
 		cvs.GET("/:id", GetCurriculumByIDController)
+		cvs.GET("/candidate/:id", GetCurriculumByCandidateIDController)
 		cvs.PUT("/:id", UpdateCurriculumController)
 		cvs.DELETE("/:id", DeleteCurriculumController)
 	}
