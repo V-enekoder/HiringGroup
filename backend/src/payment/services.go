@@ -95,3 +95,16 @@ func GetPaymentByIDService(id uint) (PaymentResponseDTO, error) {
 	}
 	return mapToResponseDTO(p), nil
 }
+
+func GetPaymentsByCompanyIDService(companyID uint) ([]PaymentResponseDTO, error) {
+	payments, err := GetPaymentsByCompanyIDRepository(companyID)
+	if err != nil {
+		return nil, err
+	}
+
+	var responseDTOs []PaymentResponseDTO
+	for _, p := range payments {
+		responseDTOs = append(responseDTOs, mapToResponseDTO(p))
+	}
+	return responseDTOs, nil
+}

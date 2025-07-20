@@ -62,3 +62,19 @@ func GetPaymentByIDController(c *gin.Context) {
 
 	c.JSON(http.StatusOK, payment)
 }
+
+func GetPaymentsByCompanyIDController(c *gin.Context) {
+	companyID, err := strconv.ParseUint(c.Param("companyId"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid company ID"})
+		return
+	}
+
+	payments, err := GetPaymentsByCompanyIDService(uint(companyID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, payments)
+}

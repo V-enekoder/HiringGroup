@@ -38,3 +38,18 @@ func GetPaymentByIDRepository(id uint) (schema.Payment, error) {
 		First(&p, id).Error
 	return p, err
 }
+
+func GetPaymentsByCompanyIDRepository(companyID uint) ([]schema.Payment, error) {
+	var payments []schema.Payment
+	db := config.DB
+	err := db.
+		Joins("JOIN contracts ON contracts.id = payments.contract_id").
+		Joins("JOIN postulations ON postulations.id = contracts.postulation_id").
+		Joins("JOIN job_offers ON job_offers.id = postulations.job_id").
+		Where("job_offers.company_id = ?", companyID).
+		Preload("Contract.Postulation.Candidate.User").
+		Preload("Contract.Postulation.JobOffer.Company").
+		Find(&payments).Error
+
+	return payments, err
+}

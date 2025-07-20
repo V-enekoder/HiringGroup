@@ -100,3 +100,7 @@ export const laboralExperienceService = {
     updateLaboralExperience: (laboralExperienceId, data) => apiClient.put(`/laboral-experiences/${laboralExperienceId}`, data),
     deleteLaboralExperience: (laboralExperienceId) => apiClient.delete(`/laboral-experiences/${laboralExperienceId}`)
 }
+
+export const paymentService = {
+    getPaymentByCompanyId: (companyId) => apiClient.get(`/payments/company/${companyId}`)
+}

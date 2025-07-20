@@ -1,27 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Flex, Typography, Button, Select, Table, message, Tag, Popconfirm, Statistic } from 'antd';
 import { SolutionOutlined, CalendarOutlined, BankOutlined, DollarOutlined, CalculatorOutlined, CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import '../styles/pag.css';
+import { companyService, paymentService } from '../../services/api';
 
 const { Title, Text } = Typography;
-
-// --- DATOS DE EJEMPLO ALINEADOS CON LA BD ---
-// Asumimos que ya existen contratos y pagos (o la ausencia de ellos)
-const db = {
-    companies: [{ id: 1, name: 'Tech Solutions Inc.' }, { id: 2, name: 'Innovate Marketing' }],
-    candidates: [
-        { id: 201, name: 'Ana Martínez', document: '12345678' },
-        { id: 202, name: 'Juan Pérez', document: '87654321' },
-    ],
-    contracts: [
-        { id: 301, candidate_id: 201, company_id: 1, salary: 5500 },
-        { id: 302, candidate_id: 202, company_id: 1, salary: 4800 },
-        { id: 303, candidate_id: 202, company_id: 2, salary: 6000 }, 
-    ],
-    payments: [
-        { contract_id: 301, year: 2025, month: 6, net_payment: 5417.5 }, 
-    ]
-};
 
 // --- Opciones para los filtros de fecha ---
 const meses = Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: new Date(0, i).toLocaleString('es-ES', { month: 'long' }) }));
@@ -30,6 +13,8 @@ const anios = [ { value: 2025, label: '2025' }, { value: 2024, label: '2024' } ]
 
 const PayrollManagement = () => {
     // --- ESTADOS ---
+    const [companies, setCompanies] = useState([])
+    const [payments, setPayments] = useState([])
     const [selectedCompany, setSelectedCompany] = useState(null);
     const [selectedMonth, setSelectedMonth] = useState(null);
     const [selectedYear, setSelectedYear] = useState(null);
@@ -37,46 +22,68 @@ const PayrollManagement = () => {
     const [isPayrollGenerated, setIsPayrollGenerated] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    useEffect(() => {
+        const getCompanies = async () => {
+            try{
+                const response = await companyService.getAllCompanies()
+                const data = response.data
+
+                setCompanies(data)
+            }catch(error){
+                console.error('Error al cargar empresas:', error)
+                message.error('Error al cargar las empresas desde el servidor.')
+            }
+        }
+
+        getCompanies()
+    }, [])
+
     // --- LÓGICA DE NÓMINA ---
-    const handleGeneratePayroll = () => {
+    const handleGeneratePayroll = async () => {
         if (!selectedCompany || !selectedMonth || !selectedYear) {
             message.error('Por favor, selecciona empresa, mes y año.');
             return;
         }
         setLoading(true);
 
-        const companyContracts = db.contracts.filter(c => c.company_id === selectedCompany);
-        
-        const newPayrollData = companyContracts.map(contract => {
-            const candidate = db.candidates.find(c => c.id === contract.candidate_id);
-            const isPaid = db.payments.some(p => p.contract_id === contract.id && p.year === selectedYear && p.month === selectedMonth);
-            
-            const ivssDeduction = contract.salary * 0.01;
-            const incesDeduction = contract.salary * 0.005;
-            const totalDeductions = ivssDeduction + incesDeduction;
-            const netPayment = contract.salary - totalDeductions;
-            const hgCommission = contract.salary * 0.02;
+        try{
+            const response = await paymentService.getPaymentByCompanyId(selectedCompany)
+            const data = response.data
+            console.log("Payments", data)
 
-            return {
-                key: contract.id,
-                name: candidate.name,
-                document: candidate.document,
-                grossSalary: contract.salary,
-                ivssDeduction,
-                incesDeduction,
-                totalDeductions,
-                netPayment,
-                hgCommission,
-                status: isPaid ? 'Pagado' : 'Pendiente'
-            };
-        });
+            setPayments(data)
 
-        setTimeout(() => { 
-            setPayrollData(newPayrollData);
-            setIsPayrollGenerated(true);
-            setLoading(false);
-        }, 500);
+            const newPayrollData = data.filter(payment => {
+                const [anio, mes] = payment.date.split('-').map(Number);
+                console.log("Año", anio, selectedYear, "Mes", mes, selectedMonth)
+                return anio === selectedYear && mes === selectedMonth;
+            });
+
+            setTimeout(() => { 
+                setPayrollData(newPayrollData);
+                setIsPayrollGenerated(true);
+                setLoading(false);
+            }, 500);
+        }catch(error){
+            console.error('Error al cargar pagos:', error)
+            message.error('Error al cargar los pagos desde el servidor.')
+        }
     };
+
+    const handleNewPayroll = () => {
+            console.log("Payments", payments)
+            const newPayrollData = payments.filter(payment => {
+                const [anio, mes] = payment.date.split('-').map(Number);
+                console.log("Año", anio, selectedYear, "Mes", mes, selectedMonth)
+                return anio === selectedYear && mes === selectedMonth;  
+            });
+
+            setTimeout(() => { 
+                setPayrollData(newPayrollData);
+                setIsPayrollGenerated(true);
+                setLoading(false);
+            }, 500);
+        }
     
     const handleRunPayroll = () => {
         message.info('Procesando corrida de nómina...');
@@ -91,29 +98,31 @@ const PayrollManagement = () => {
     const isPayrollPaid = payrollData.every(p => p.status === 'Pagado');
 
     const columns = [
-        { title: 'Empleado', dataIndex: 'name', key: 'name' },
-        { title: 'Cédula', dataIndex: 'document', key: 'document' },
-        { title: 'Salario Bruto', dataIndex: 'grossSalary', key: 'grossSalary', render: (val) => `${val.toFixed(2)} USD` },
-        { title: 'IVSS (1%)', dataIndex: 'ivssDeduction', key: 'ivssDeduction', render: (val) => val.toFixed(2) },
-        { title: 'INCES (0.5%)', dataIndex: 'incesDeduction', key: 'incesDeduction', render: (val) => val.toFixed(2) },
-        { title: 'Pago Neto', dataIndex: 'netPayment', key: 'netPayment', render: (val) => <Text strong>{val.toFixed(2)} USD</Text> },
-        { title: 'Comisión HG (2%)', dataIndex: 'hgCommission', key: 'hgCommission', render: (val) => val.toFixed(2) },
-        { title: 'Estado', dataIndex: 'status', key: 'status', render: (status) => <Tag icon={status === 'Pagado' ? <CheckCircleOutlined /> : <ClockCircleOutlined />} color={status === 'Pagado' ? 'success' : 'processing'}>{status}</Tag> },
+        { title: 'Nombre', dataIndex: 'candidateName', key: 'candidateName' },
+        { title: 'Salario Bruto', dataIndex: 'amount', key: 'amount', render: (val) => `${val.toFixed(2)} USD` },
+        { title: 'IVSS (1%)', dataIndex: 'socialSecurityFee', key: 'socialSecurityFee', render: (val) => val.toFixed(2) },
+        { title: 'INCES (0.5%)', dataIndex: 'incesFee', key: 'incesFee', render: (val) => val.toFixed(2) },
+        { title: 'Pago Neto', dataIndex: 'netAmount', key: 'netAmount', render: (val) => <Text strong>{val.toFixed(2)} USD</Text> },
+        { title: 'Comisión HG (2%)', dataIndex: 'hiringGroupFee', key: 'hiringGroupFee', render: (val) => val.toFixed(2) },
     ];
     
-    const totalNetPayment = useMemo(() => payrollData.reduce((sum, item) => sum + item.netPayment, 0), [payrollData]);
-    const totalHgCommission = useMemo(() => payrollData.reduce((sum, item) => sum + item.hgCommission, 0), [payrollData]);
+    const totalNetPayment = useMemo(() => payrollData.reduce((sum, item) => sum + item.netAmount, 0), [payrollData]);
+    const totalHgCommission = useMemo(() => payrollData.reduce((sum, item) => sum + item.hiringGroupFee, 0), [payrollData]);
 
+    const companyOptions = companies.map(c => ({
+        label: c.companyName,     // lo que se ve en el Select
+        value: c.company_id        // lo que se guarda en el form
+    }));
 
     return (
         <div className='contenedorMain2'>
-                <Title level={2} style={{ color: '#2b404e', margin: 0 }}>Gestión de Nómina</Title>
+            <Title level={2} style={{ color: '#2b404e', margin: 0 }}>Gestión de Nómina</Title>
 
             <div className='contenedorTarjeta'>
                 <Flex gap="middle" wrap="wrap" align="center">
-                    <Select placeholder="Seleccionar Empresa" options={db.companies.map(c => ({ value: c.id, label: c.name }))} style={{ flexGrow: 1 }} onChange={setSelectedCompany} />
-                    <Select placeholder="Mes" options={meses} style={{ flexGrow: 1 }} onChange={setSelectedMonth} />
-                    <Select placeholder="Año" options={anios} style={{ flexGrow: 1 }} onChange={setSelectedYear} />
+                    <Select placeholder="Seleccionar Empresa" options={companyOptions} loading={companies.length === 0} style={{ flexGrow: 1 }} onChange={setSelectedCompany} value={selectedCompany} allowClear/>
+                    <Select placeholder="Mes" options={meses} style={{ flexGrow: 1 }} onChange={setSelectedMonth} allowClear/>
+                    <Select placeholder="Año" options={anios} style={{ flexGrow: 1 }} onChange={setSelectedYear} allowClear/>
                     <Button  icon={<SolutionOutlined />} onClick={handleGeneratePayroll} loading={loading}>
                         Generar Reporte
                     </Button>
@@ -123,7 +132,7 @@ const PayrollManagement = () => {
             {isPayrollGenerated && (
                 <div className='contenedorTarjeta'>
                     <Flex justify="space-between" align="center" style={{marginBottom: '24px'}}>
-                        <Title level={4} style={{margin: 0}}>Nómina de {db.companies.find(c=>c.id === selectedCompany).name} - {meses.find(m=>m.value===selectedMonth).label} {selectedYear}</Title>
+                        <Title level={4} style={{margin: 0}}>Nómina de {companies.find(c=>c.company_id === selectedCompany).companyName} - {meses.find(m=>m.value===selectedMonth).label} {selectedYear}</Title>
                         <Popconfirm
                             title="¿Ejecutar la corrida de nómina?"
                             description="Esta acción es irreversible y procesará todos los pagos."
