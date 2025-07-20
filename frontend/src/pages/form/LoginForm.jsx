@@ -44,7 +44,7 @@ export const LoginForm = () => {
                 userDataFromApi = { 
                     ...userDataFromApi, 
                     ...profileResponse.data,
-                    is_hired: profileResponse.data.Hired 
+                    is_hired: profileResponse.data.hired 
                 };
             }
             

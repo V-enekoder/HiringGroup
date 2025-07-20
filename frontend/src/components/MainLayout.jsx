@@ -82,7 +82,7 @@ const MainLayout = () => {
 
       case 'candidate':
         roleItems = [...baseCandidateItems];
-        if (user.Hired || user.is_hired) {
+        if (user.hired || user.is_hired) {
           const hiredOptions = [
             { key: '/contratado/recibos', icon: <FileTextOutlined />, label: <Link to="/contratado/recibos">Mis Recibos</Link> },
             { key: 'constancia', icon: <FilePdfOutlined />, label: 'Solicitar Constancia', onClick: () => setIsCertificateModalOpen(true) },
