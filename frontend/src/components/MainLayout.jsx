@@ -38,6 +38,7 @@ const companyItems = [
 const baseCandidateItems = [
   { key: '/candidato/curriculum', icon: <UserOutlined />, label: <Link to="/candidato/curriculum">Currículum</Link> },
   { key: '/candidato/ofertas', icon: <SolutionOutlined />, label: <Link to="/candidato/ofertas">Ofertas</Link> },
+  { key: '/candidato/ofertas-aplicadas', icon: <SolutionOutlined />, label: <Link to="/candidato/ofertas-aplicadas">Ofertas Aplicadas</Link> },
 ];
 
 

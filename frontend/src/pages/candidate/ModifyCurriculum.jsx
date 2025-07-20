@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { Layout, Flex, Typography, message, Upload, Button, Tag, Input } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Flex, Typography, message, Upload, Button, Tag, Input, Form, Modal } from 'antd';
 import { LoadingOutlined, PlusOutlined, DeleteOutlined, UserOutlined, EnvironmentOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import EditableField from '../../components/EditableField';
 import '../styles/pag.css';
+import { useAuth } from '../../context/AuthContext';
+import { candidateService, curriculumService, laboralExperienceService, professionService } from '../../services/api';
 
 const { Title, Text } = Typography;
 
@@ -24,28 +26,107 @@ const beforeUpload = file => {
 
 
 const ModifyCurriculum = () => {
-    // Estado principal que contiene toda la información del currículum.
-    const [curriculumData, setCurriculumData] = useState({
-        nombreApellido: 'Ana Martínez',
-        correo: 'ana.martinez@email.com',
-        telefono: '+34 600 123 456',
-        descripcion: 'Desarrolladora de software con experiencia en...',
-        zone: 'Bolivar',
-        estudios: [ { id: 1, institucion: 'Universidad Politécnica de Madrid',titulo: 'Grado en Ingeniería Informática', periodo: '2015 - 2019' },
-                    { id: 2, institucion: 'Bootcamp de Desarrollo Web', titulo: 'Full Stack Web Developer', periodo: '2020' } ],
-        habilidades: ['React', 'JavaScript', 'Node.js', 'CSS', 'Ant Design'],
-        experiencia: [ { id: 1,empresa: 'Tech Solutions Inc.',puesto: 'Frontend Developer',periodo: '2020 - Presente',descripcion: 'Desarrollo y mantenimiento de la plataforma principal usando React.' } ],
-        idiomas: [ { id: 1,idioma: 'Español', nivel: 'Nativo' },
-                   {id: 2,idioma: 'Inglés',nivel: 'Avanzado (C1)' }]
-    });
-
-    const handleFieldChange = (field, newValue) => {
-        setCurriculumData(prevData => ({ ...prevData, [field]: newValue }));
-    };
-
+    const { user } = useAuth()
+    const candidateId = user?.profile_id
+    const [candidate, setCandidate] = useState(null)
+    const [curriculum, setCurriculum] = useState(null)
+    const [professions, setProfessions] = useState([])
     // --- Lógica para la carga de la imagen de perfil ---
     const [loading, setLoading] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState(false);
     const [imageUrl, setImageUrl] = useState();
+    const [form] = Form.useForm()
+    
+    const getCurriculumByCandidateId = async () => {
+        try{
+            const response = await curriculumService.getCurriculumByCandidateId(candidateId)
+            const data = response.data
+            
+            setCurriculum(data)
+        }catch(error){
+            console.error('Error al cargar candidato:', error)
+            message.error('Error al cargar el candidato desde el servidor.')
+        }
+    }
+
+    useEffect(() => {
+        if(!candidateId) return
+        const getCandidateById = async () => {
+            try{
+                const response = await candidateService.getCandidateProfile(candidateId)
+                const data = response.data
+                
+                setCandidate(data)
+            }catch(error){
+                console.error('Error al cargar candidato:', error)
+                message.error('Error al cargar el candidato desde el servidor.')
+            }
+        }
+
+        const getProfessions = async () => {
+            try{
+                const response = await professionService.getAllProfessions()
+                const data = response.data
+
+                setProfessions(data)
+            }catch(error){
+                console.error('Error al cargar profesiones:', error)
+                message.error('Error al cargar las profesiones desde el servidor.')
+            }
+        }
+
+        getCandidateById()
+        getCurriculumByCandidateId()
+        getProfessions()
+    }, [candidateId])
+
+    if (!candidate || !curriculum) {
+        return <div>Cargando información...</div>;
+    }
+
+    const handleCurriculumChange = async (field, newValue) => {
+        try{
+            const profession = professions.find(p => p.name === curriculum.profession_name)
+            const value = {
+                ...curriculum,
+                profession_id: profession.id,
+                [field]: newValue
+            }
+
+            console.log("Nuevo coso ", value)
+            await curriculumService.updateCurriculumInfo(curriculum.id, value)
+
+            setCurriculum(prev => ({
+                ...prev,
+                [field]: newValue
+            }));
+
+            message.success('Información actualizada correctamente.');
+        }catch(error){
+            console.error('Error al actualizar curriculum:', error)
+            message.error('Error al actualizar el curriculum desde el servidor.')
+        }
+    };
+
+    const handleCandidateChange = async (field, newValue) => {
+        try{
+            const value = {
+                [field]: newValue
+            }
+            await candidateService.updatePersonalInfo(candidateId, value)
+
+            setCandidate(prev => ({
+                ...prev,
+                [field]: newValue
+            }));
+            
+            message.success('Información actualizada correctamente.');
+        }catch(error){
+            console.error('Error al actualizar candidato:', error)
+            message.error('Error al actualizar el candidato desde el servidor.')
+        }
+    }
+
     const handleChange = info => {
         if (info.file.status === 'uploading') {
             setLoading(true);
@@ -59,60 +140,56 @@ const ModifyCurriculum = () => {
         }
     };
 
-    // --- Funciones para gestionar la lista de ESTUDIOS  ---
-    const handleEstudioChange = (index, field, newValue) => {
-        const nuevosEstudios = [...curriculumData.estudios];
-        nuevosEstudios[index][field] = newValue;
-        handleFieldChange('estudios', nuevosEstudios);
-    };
-    const addEstudio = () => {
-        const nuevoEstudio = { id: Date.now(), institucion: 'Nombre de la Institución', titulo: 'Título Obtenido', periodo: 'Año Inicio - Año Fin' };
-        handleFieldChange('estudios', [...curriculumData.estudios, nuevoEstudio]);
-    };
-    const removeEstudio = (index) => {
-        const nuevosEstudios = curriculumData.estudios.filter((_, i) => i !== index);
-        handleFieldChange('estudios', nuevosEstudios);
-    };
+    // --- Funciones para gestionar la lista de EXPERIENCIA  ---
+    const handleExperienciaChange = async (index, field, newValue) => {
+        try{
+            const value = {
+                ...curriculum.laboral_experiences[index],
+                [field]: newValue
+            }
+            await laboralExperienceService.updateLaboralExperience(curriculum.laboral_experiences[index].id, value)
 
-    // --- Funciones para gestionar la lista de HABILIDADES ---
-    const [nuevaHabilidad, setNuevaHabilidad] = useState('');
-    const addHabilidad = () => {
-        if (nuevaHabilidad && !curriculumData.habilidades.includes(nuevaHabilidad.trim())) {
-            handleFieldChange('habilidades', [...curriculumData.habilidades, nuevaHabilidad.trim()]);
-            setNuevaHabilidad('');
+            message.success('Información actualizada correctamente.');
+
+            await getCurriculumByCandidateId();
+        }catch(error){
+            console.error('Error al actualizar experiencia:', error)
+            message.error('Error al actualizar la experiencia desde el servidor.')
         }
     };
-    const removeHabilidad = (habilidadAEliminar) => {
-        handleFieldChange('habilidades', curriculumData.habilidades.filter(h => h !== habilidadAEliminar));
-    };
-
-    // --- Funciones para gestionar la lista de EXPERIENCIA  ---
-    const handleExperienciaChange = (index, field, newValue) => {
-        const nuevaExperiencia = [...curriculumData.experiencia];
-        nuevaExperiencia[index][field] = newValue;
-        handleFieldChange('experiencia', nuevaExperiencia);
-    };
     const addExperiencia = () => {
-        const nuevaExperiencia = { id: Date.now(), empresa: 'Nombre de la Empresa', puesto: 'Puesto Ocupado', periodo: 'Año Inicio - Año Fin', descripcion: 'Responsabilidades y logros...' };
-        handleFieldChange('experiencia', [...curriculumData.experiencia, nuevaExperiencia]);
-    };
-    const removeExperiencia = (index) => {
-        handleFieldChange('experiencia', curriculumData.experiencia.filter((_, i) => i !== index));
+        setIsModalVisible(true)
     };
 
-    // --- Funciones para gestionar la lista de IDIOMAS ---
-    const handleIdiomaChange = (index, field, newValue) => {
-        const nuevosIdiomas = [...curriculumData.idiomas];
-        nuevosIdiomas[index][field] = newValue;
-        handleFieldChange('idiomas', nuevosIdiomas);
+    const removeExperiencia = async (laboralExperienceId) => {
+        try{
+            await laboralExperienceService.deleteLaboralExperience(laboralExperienceId)
+
+            message.success('Experiencia laboral eliminada correctamente.');
+
+            await getCurriculumByCandidateId();
+        }catch(error){
+            console.log('Error de validación:', error);
+        }
     };
-    const addIdioma = () => {
-        const nuevoIdioma = { id: Date.now(), idioma: 'Idioma', nivel: 'Nivel' };
-        handleFieldChange('idiomas', [...curriculumData.idiomas, nuevoIdioma]);
-    };
-    const removeIdioma = (index) => {
-        handleFieldChange('idiomas', curriculumData.idiomas.filter((_, i) => i !== index));
-    };
+
+    const handleModalOk = async () => {
+        try{
+            const values = await form.validateFields();
+            await laboralExperienceService.createNewLaboralExperience({
+            ...values,
+            curriculum_id: curriculum.id,
+        })
+
+            message.success('Experiencia laboral creada con éxito.');
+            setIsModalVisible(false);
+            form.resetFields();
+
+            await getCurriculumByCandidateId();
+        }catch(error){
+            console.log('Error de validación:', error);
+        }
+    }
 
     // JSX para el botón de carga de la imagen.
     const uploadButton = ( <button style={{ border: 0, background: 'none' }} type="button"> {loading ? <LoadingOutlined /> : <PlusOutlined />} <div style={{ marginTop: 8 }}>Upload</div> </button> );
@@ -132,10 +209,11 @@ const ModifyCurriculum = () => {
                                 {imageUrl ? <img src={imageUrl} alt="avatar" style={{ width: '100%', borderRadius: '50%' }} /> : uploadButton}
                             </Upload>
                             <Flex vertical gap="16px" style={{ width: '100%' }}>
-                                <EditableField icon={<UserOutlined/>} label="Nombre" value={curriculumData.nombreApellido} onChange={(v) => handleFieldChange('nombreApellido', v)} />
-                                <EditableField icon={<EnvironmentOutlined/>} label="Ubicación" value={curriculumData.zone} onChange={(v) => handleFieldChange('zone', v)} />
-                                <EditableField icon={<MailOutlined/>} label="Correo" value={curriculumData.correo} onChange={(v) => handleFieldChange('correo', v)} />
-                                <EditableField icon={<PhoneOutlined/>} label="Teléfono" value={curriculumData.telefono} onChange={(v) => handleFieldChange('telefono', v)} />
+                                <EditableField icon={<UserOutlined/>} label="Nombre" value={candidate.name} onChange={(v) => handleCandidateChange('name', v)} />
+                                <EditableField icon={<UserOutlined/>} label="Apellido" value={candidate.lastName} onChange={(v) => handleCandidateChange('lastName', v)} />
+                                <EditableField icon={<EnvironmentOutlined/>} label="Ubicación" value={candidate.address} onChange={(v) => handleCandidateChange('address', v)} />
+                                <EditableField icon={<MailOutlined/>} label="Correo" value={candidate.email} onChange={(v) => handleCandidateChange('email', v)} />
+                                <EditableField icon={<PhoneOutlined/>} label="Teléfono" value={candidate.phoneNumber} onChange={(v) => handleCandidateChange('phoneNumber', v)} />
                             </Flex>
                         </Flex>
                     </div>
@@ -143,18 +221,15 @@ const ModifyCurriculum = () => {
                     <div className='contenedorTarjeta'>
                         <Text className='TextTarjeta'>Sobre mí</Text>
                         <div style={{marginTop: '16px'}}>
-                           <EditableField value={curriculumData.descripcion} onChange={(v) => handleFieldChange('descripcion', v)} isTextArea={true} />
+                           <EditableField value={curriculum.resume} onChange={(v) => handleCurriculumChange('resume', v)} isTextArea={true} />
                         </div>
                     </div>
 
                     <div className='contenedorTarjeta'>
                         <Text className='TextTarjeta'>Habilidades</Text>
-                        <Input placeholder="Añadir habilidad y presionar Enter" value={nuevaHabilidad} onChange={(e) => setNuevaHabilidad(e.target.value)} onPressEnter={addHabilidad} style={{ margin: '16px 0' }} />
                         <Flex wrap="wrap" gap="small">
                             {/* Itera sobre las habilidades para renderizar los tags */}
-                            {curriculumData.habilidades.map((h, i) => (
-                                <Tag key={i} closable onClose={() => removeHabilidad(h)} className="habilidad-tag">{h}</Tag>
-                            ))}
+                            <EditableField icon={<UserOutlined/>} label="Habilidades" value={curriculum.skills} onChange={(v) => handleCurriculumChange('skills', v)} />
                         </Flex>
                     </div>
                 </Flex>
@@ -168,15 +243,16 @@ const ModifyCurriculum = () => {
                         </Flex>
                         <Flex vertical gap="16px" style={{ marginTop: '16px' }}>
                             {/* Itera sobre la lista de experiencias para renderizarlas */}
-                            {curriculumData.experiencia.map((exp, index) => (
+                            {curriculum.laboral_experiences.map((exp, index) => (
                                 <div key={exp.id} className='list-item-card'>
                                     <Flex justify="space-between" align="start">
-                                        <EditableField value={exp.empresa} onChange={(v) => handleExperienciaChange(index, 'empresa', v)} />
-                                        <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeExperiencia(index)} />
+                                        <EditableField value={exp.company} onChange={(v) => handleExperienciaChange(index, 'company', v)} />
+                                        <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeExperiencia(exp.id)} />
                                     </Flex>
-                                    <EditableField label="Puesto" value={exp.puesto} onChange={(v) => handleExperienciaChange(index, 'puesto', v)} />
-                                    <EditableField label="Período" value={exp.periodo} onChange={(v) => handleExperienciaChange(index, 'periodo', v)} />
-                                    <EditableField label="Descripción" value={exp.descripcion} onChange={(v) => handleExperienciaChange(index, 'descripcion', v)} isTextArea={true} />
+                                    <EditableField label="Puesto" value={exp.job_title} onChange={(v) => handleExperienciaChange(index, 'job_title', v)} />
+                                    <EditableField label="Fecha de Inicio" value={exp.start_date} onChange={(v) => handleExperienciaChange(index, 'start_date', v)} />
+                                    <EditableField label="Fecha de Fin" value={exp.end_date} onChange={(v) => handleExperienciaChange(index, 'end_date', v)} />
+                                    <EditableField label="Descripción" value={exp.description} onChange={(v) => handleExperienciaChange(index, 'description', v)} isTextArea={true} />
                                 </div>
                             ))}
                         </Flex>
@@ -185,41 +261,52 @@ const ModifyCurriculum = () => {
                     <div className='contenedorTarjeta'>
                         <Flex justify="space-between" align="center">
                             <Text className='TextTarjeta'>Estudios</Text>
-                            <Button type="text" icon={<PlusOutlined />} onClick={addEstudio}>Añadir</Button>
                         </Flex>
                         <Flex vertical gap="16px" style={{ marginTop: '16px' }}>
-                            {curriculumData.estudios.map((est, index) => (
-                                <div key={est.id} className='list-item-card'>
-                                    <Flex justify="space-between" align="start">
-                                        <EditableField value={est.institucion} onChange={(v) => handleEstudioChange(index, 'institucion', v)} />
-                                        <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeEstudio(index)} />
-                                    </Flex>
-                                    <EditableField label="Título" value={est.titulo} onChange={(v) => handleEstudioChange(index, 'titulo', v)} />
-                                    <EditableField label="Período" value={est.periodo} onChange={(v) => handleEstudioChange(index, 'periodo', v)} />
-                                </div>
-                            ))}
+                            <EditableField icon={<UserOutlined/>} label="Estudios" value={curriculum.university_of_graduation} onChange={(v) => handleCurriculumChange('university_of_graduation', v)} />
                         </Flex>
                     </div>
 
                     <div className='contenedorTarjeta'>
                         <Flex justify="space-between" align="center">
                             <Text className='TextTarjeta'>Idiomas</Text>
-                            <Button type="text" icon={<PlusOutlined />} onClick={addIdioma}>Añadir</Button>
                         </Flex>
                         <Flex vertical gap="16px" style={{ marginTop: '16px' }}>
-                            {curriculumData.idiomas.map((idioma, index) => (
-                                <div key={idioma.id} className='list-item-card'>
-                                    <Flex justify="space-between" align="start">
-                                        <EditableField value={idioma.idioma} onChange={(v) => handleIdiomaChange(index, 'idioma', v)} />
-                                        <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeIdioma(index)} />
-                                    </Flex>
-                                    <EditableField label="Nivel" value={idioma.nivel} onChange={(v) => handleIdiomaChange(index, 'nivel', v)} />
-                                </div>
-                            ))}
+                            <EditableField icon={<UserOutlined/>} label="Idiomas" value={curriculum.spoken_languages} onChange={(v) => handleCurriculumChange('spoken_languages', v)} />
                         </Flex>
                     </div>
                 </Flex>
             </Flex>
+
+            <Modal
+                title={'Agregar Nueva Experiencia Laboral'}
+                open={isModalVisible}
+                onOk={handleModalOk}
+                onCancel={() => setIsModalVisible(false)}
+                okText="Guardar"
+                cancelText="Cancelar"
+                width={600}
+                destroyOnClose
+            >
+                <Form form={form} layout="vertical" name="laboralExperienceForm" style={{ marginTop: '24px' }}>
+                    <Title level={5}>Nueva Experiencia Laboral</Title>
+                    <Form.Item name="company" label="Nombre de la Empresa" rules={[{ required: true, message: 'Este campo es requerido' }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="job_title" label="Puesto" rules={[{ required: true, message: 'Este campo es requerido' }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="start_date" label="Fecha de inicio (YYYY-MM-DD)" rules={[{ required: true, message: 'Este campo es requerido' }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="end_date" label="Fecha de fin (YYYY-MM-DD)" rules={[{ required: true, message: 'Este campo es requerido' }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="description" label="Descripcion" rules={[{ required: true, message: 'Este campo es requerido' }]}>
+                        <Input />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };

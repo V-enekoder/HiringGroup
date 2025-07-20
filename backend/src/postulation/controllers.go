@@ -70,6 +70,22 @@ func GetPostulationByJobOfferController(c *gin.Context) {
 	c.JSON(http.StatusOK, postulations)
 }
 
+func GetPostulationByCandidateIDController(c *gin.Context) {
+	candidateID, err := strconv.ParseUint(c.Param("candidateId"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Candidate ID format"})
+		return
+	}
+
+	postulations, err := GetPostulationByCandidateService(uint(candidateID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, postulations)
+}
+
 func UpdatePostulationController(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {

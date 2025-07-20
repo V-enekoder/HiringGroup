@@ -34,6 +34,7 @@ export const candidateService = {
     updateBankDetails: (candidateId, data) => apiClient.put(`/candidates/${candidateId}/bank`, data),
     updateEmergencyContact: (candidateId, data) => apiClient.put(`/candidates/${candidateId}/emergency`, data),
     updateProfessionalInfo: (candidateId, data) => apiClient.put(`/candidates/${candidateId}/professional`, data),
+    updatePersonalInfo: (candidateId, data) => apiClient.put(`/candidates/${candidateId}`, data),
     getCandidateProfile: (candidateId) => apiClient.get(`/candidates/${candidateId}`),
 };
 
@@ -53,8 +54,10 @@ export const jobOffersService = {
 }
 
 export const postulationService = {
+    creaneNewPostulation: (data) => apiClient.post('/postulations/', data),
     getAllPostulations: () => apiClient.get('/postulations/'),
-    getPostulationsByJobOffer: (jobOfferId) => apiClient.get(`/postulations/joboffer/${jobOfferId}`)
+    getPostulationsByJobOffer: (jobOfferId) => apiClient.get(`/postulations/joboffer/${jobOfferId}`),
+    getPostulationsByCandidate: (candidateId) => apiClient.get(`/postulations/candidate/${candidateId}`)
 }
 
 export const bankService = {
@@ -73,7 +76,8 @@ export const zoneService = {
 }
 
 export const curriculumService = {
-    getCurriculumByCandidateId: (candidateId) => apiClient.get(`/curriculums/candidate/${candidateId}`)
+    getCurriculumByCandidateId: (candidateId) => apiClient.get(`/curriculums/candidate/${candidateId}`),
+    updateCurriculumInfo: (curriculumId, data) => apiClient.put(`/curriculums/${curriculumId}`, data)
 }
 
 export const contractService = {
@@ -86,4 +90,10 @@ export const contractingPeriodService = {
 
 export const emergencyContactService = {
     getEmergencyContactbyCandidateId: (candidateId) => apiClient.get(`/emergency-contacts/${candidateId}`)
+}
+
+export const laboralExperienceService = {
+    createNewLaboralExperience: (data) => apiClient.post('/laboral-experiences/', data),
+    updateLaboralExperience: (laboralExperienceId, data) => apiClient.put(`/laboral-experiences/${laboralExperienceId}`, data),
+    deleteLaboralExperience: (laboralExperienceId) => apiClient.delete(`/laboral-experiences/${laboralExperienceId}`)
 }

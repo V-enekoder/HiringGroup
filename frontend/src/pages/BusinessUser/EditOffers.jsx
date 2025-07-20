@@ -9,14 +9,6 @@ import { jobOffersService, professionService, zoneService } from '../../services
 
 const { Title, Text } = Typography;
 
-// Datos de ejemplo para las ofertas
-const initialOffers = [
-    { id: 1, profesion: 'Ingeniería de Software', cargo: 'Frontend Developer (Senior)', descripcion: 'Buscamos un desarrollador Frontend...', salario: '50,000 - 65,000 USD/año', estatus: 'activa' },
-    { id: 2, profesion: 'Diseño UX/UI', cargo: 'Diseñador de Producto', descripcion: 'Se requiere diseñador de producto...', salario: '45,000 - 55,000 USD/año', estatus: 'activa' },
-    { id: 3, profesion: 'Ingeniería de Software', cargo: 'Backend Developer (Node.js)', descripcion: 'Responsable de la lógica del servidor...', salario: '52,000 - 68,000 USD/año', estatus: 'inactiva' },
-    { id: 4, profesion: 'Recursos Humanos', cargo: 'Reclutador IT', descripcion: 'Encargado de encontrar y atraer talento...', salario: '35,000 - 45,000 USD/año', estatus: 'activa' }
-];
-
 // Opciones para el selector de filtro
 const estatusOptions = [
     { value: 'activa', label: 'Activas' },

@@ -9,6 +9,7 @@ func RegisterRoutes(router *gin.Engine) {
 		postulations.POST("/", CreatePostulationController)
 		postulations.GET("/", GetAllPostulationsController)
 		postulations.GET("/:id", GetPostulationByIDController)
+		postulations.GET("/candidate/:candidateId", GetPostulationByCandidateIDController)
 		postulations.GET("/joboffer/:jobOfferId", GetPostulationByJobOfferController)
 		postulations.PUT("/:id", UpdatePostulationController)
 		postulations.DELETE("/:id", DeletePostulationController)

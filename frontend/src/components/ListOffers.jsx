@@ -29,7 +29,7 @@ const ListOffers = ({ offers, onShowDetails }) => {
           <Flex justify="space-between" align="flex-start" gap="large">
             <Flex vertical>
               <Title level={5} style={{ marginTop: 0, marginBottom: 8 }}>
-                {item.profession} - {item.company}
+                {item.professionName} - {item.companyName}
               </Title>
               <Paragraph type="secondary" ellipsis={{ rows: 2, expandable: false }} style={{ marginBottom: 16 }}>
                 {item.description}
@@ -37,11 +37,11 @@ const ListOffers = ({ offers, onShowDetails }) => {
               <Space size="large" wrap>
                 <Space>
                   <EnvironmentOutlined style={{ color: token.colorTextSecondary }} />
-                  <Text type="secondary">{item.zone}</Text>
+                  <Text type="secondary">{item.zoneName}</Text>
                 </Space>
                 <Space>
                   <UserOutlined style={{ color: token.colorTextSecondary }} />
-                  <Text type="secondary">{item.position}</Text>
+                  <Text type="secondary">{item.openPosition}</Text>
                 </Space>
                 <Space>
                   <DollarCircleOutlined style={{ color: token.colorTextSecondary }} />

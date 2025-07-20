@@ -1,41 +1,66 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Flex, Typography, Button, Select, Tag } from 'antd';
-import { ClearOutlined, CalendarOutlined, BankOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { ClearOutlined, BankOutlined, ClockCircleOutlined, DollarCircleOutlined} from '@ant-design/icons';
 import '../styles/pag.css'; 
+import { useAuth } from '../../context/AuthContext';
+import { companyService, postulationService } from '../../services/api';
 
 const { Title, Text } = Typography;
 
-const mockApplications = [
-    { id: 1, offerId: 101, cargo: 'Frontend Developer (Senior)', empresa: 'Tech Solutions Inc.', fecha: '2025-07-15', estatus: 'En revisión' },
-    { id: 2, offerId: 102, cargo: 'Diseñador de Producto', empresa: 'Innovate Marketing', fecha: '2025-07-10', estatus: 'Aceptada' },
-    { id: 3, offerId: 104, cargo: 'Community Manager', empresa: 'Innovate Marketing', fecha: '2025-06-28', estatus: 'Rechazada' },
-    { id: 4, offerId: 103, cargo: 'Backend Developer (Node.js)', empresa: 'Tech Solutions Inc.', fecha: '2025-06-15', estatus: 'En revisión' },
-];
-
-// Genera dinámicamente las opciones para los filtros a partir de los datos
-const empresasDisponibles = [...new Set(mockApplications.map(a => a.empresa))].map(e => ({ value: e, label: e }));
-const estatusDisponibles = [...new Set(mockApplications.map(a => a.estatus))].map(e => ({ value: e, label: e }));
-
 const HistoryOffers = () => {
+    const { user } = useAuth()
+    const candidateId = user?.profile_id
+    const [companies, setCompanies] = useState([])
+    const [postulations, setPostulations] = useState([])
     // --- Estados para controlar los filtros ---
     const [filtroEmpresa, setFiltroEmpresa] = useState(null);
     const [filtroEstatus, setFiltroEstatus] = useState(null);
 
+    useEffect(() => {
+        if(!candidateId) return
+
+        const getCompanies = async () => {
+            try{
+                const response = await companyService.getAllCompanies()
+                const data = response.data
+
+                setCompanies(data)
+            }catch(error){
+                console.error('Error al cargar empresas:', error)
+                message.error('Error al cargar las empresas desde el servidor.')
+            }
+        }
+
+        const getPostulationsByCandidate = async () => {
+            try{
+                const response = await postulationService.getPostulationsByCandidate(candidateId)
+                const data = response.data
+
+                setPostulations(data)
+            }catch(error){
+                console.error('Error al cargar postulaciones:', error)
+                message.error('Error al cargar las postulaciones desde el servidor.')
+            }
+        }
+        getCompanies()
+        getPostulationsByCandidate()
+    }, [candidateId])
+
     // Memoriza el resultado del filtrado para mejorar el rendimiento
     const postulacionesFiltradas = useMemo(() => {
-        const sorted = [...mockApplications].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
+        const sorted = [...postulations].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+        
         if (!filtroEmpresa && !filtroEstatus) {
             return sorted;
         }
         
         // Aplica los filtros seleccionados
         return sorted.filter(postulacion => {
-            const matchEmpresa = !filtroEmpresa || postulacion.empresa === filtroEmpresa;
-            const matchEstatus = !filtroEstatus || postulacion.estatus === filtroEstatus;
+            const matchEmpresa = !filtroEmpresa || postulacion.jobOfferCompanyName === filtroEmpresa;
+            const matchEstatus = !filtroEstatus || postulacion.active === filtroEstatus;
             return matchEmpresa && matchEstatus;
         });
-    }, [filtroEmpresa, filtroEstatus]); // Se recalcula solo si los filtros cambian
+    }, [filtroEmpresa, filtroEstatus, postulations]); // Se recalcula solo si los filtros cambian
 
     const limpiarFiltros = () => {
         setFiltroEmpresa(null);
@@ -45,12 +70,25 @@ const HistoryOffers = () => {
     // Función para asignar un color al tag según el estado
     const getStatusColor = (status) => {
         switch (status) {
-            case 'Aceptada': return 'success';
-            case 'Rechazada': return 'error';
-            case 'En revisión': return 'processing';
+            case true: return 'success';
+            case false: return 'processing';
             default: return 'default';
         }
     };
+
+    const estatusDisponibles = [...new Set(postulations.map(a => a.hasContract))].map(e => ({
+        value: e,
+        label: e ? 'Aceptada' : 'En Revision'
+    }));
+
+    const companyOptions = companies.map(c => ({
+        label: c.companyName,     // lo que se ve en el Select
+        value: c.companyName        // lo que se guarda en el form
+    }));
+
+    if (!postulacionesFiltradas) {
+        return <div>Cargando información...</div>;
+    }
 
     return (
         <div className='contenedorMain2'>
@@ -62,7 +100,8 @@ const HistoryOffers = () => {
                     <Text strong>Filtrar por:</Text>
                     <Select
                         placeholder="Empresa"
-                        options={empresasDisponibles}
+                        options={companyOptions}
+                        loading={companies.length === 0}
                         value={filtroEmpresa}
                         onChange={setFiltroEmpresa}
                         style={{ flexGrow: 1, minWidth: 200 }}
@@ -95,19 +134,18 @@ const HistoryOffers = () => {
                                 <div>
                                     <Flex justify="space-between" align="start">
                                         <Title level={5} style={{ margin: 0, color: '#376b83', paddingRight: '8px' }}>
-                                            {item.cargo}
+                                            {item.jobOfferPosition}
                                         </Title>
-                                        <Tag icon={<ClockCircleOutlined />} color={getStatusColor(item.estatus)}>
-                                            {item.estatus}
+                                        <Tag icon={<ClockCircleOutlined />} color={getStatusColor(item.hasContract)}>
+                                            {item.hasContract ? 'Aceptada' : 'En Revision'}
                                         </Tag>
                                     </Flex>
                                     <Text type="secondary" style={{display: 'block', marginTop: '8px'}}>
                                         <BankOutlined style={{ marginRight: 8 }} />
-                                        {item.empresa}
+                                        {item.jobOfferCompanyName}
                                     </Text>
                                     <Text type="secondary" style={{display: 'block', marginTop: '4px'}}>
-                                        <CalendarOutlined style={{ marginRight: 8 }} />
-                                        Postulado el: {new Date(item.fecha).toLocaleDateString('es-ES')}
+                                        Salario: {item.jobOfferSalary}
                                     </Text>
                                 </div>
                             </Flex>

@@ -8,7 +8,7 @@ import './styles.css'
 import { Link } from 'react-router-dom';
 const { Text } = Typography;
 
-const CardCurriculum = () => {
+const CardCurriculum = ({ info }) => {
 
 
     return (
@@ -29,9 +29,9 @@ const CardCurriculum = () => {
                 />
 
                 <Space direction="vertical" align="start" style={{ width: '100%' }}>
-                    <Text><strong>Nombre:</strong> Manuel</Text>
-                    <Text><strong>Profesión:</strong> Ingeniero de Software</Text>
-                    <Text><strong>Skills:</strong> React, Node.js, Ant Design</Text>
+                    <Text><strong>Nombre:</strong> {info.candidate_name}</Text>
+                    <Text><strong>Profesión:</strong> {info.profession_name}</Text>
+                    <Text><strong>Skills:</strong> {info.skills}</Text>
                 </Space>
             </Flex>
         </Card>
