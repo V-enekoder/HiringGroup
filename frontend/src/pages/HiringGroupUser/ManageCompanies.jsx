@@ -32,9 +32,9 @@ const ManageCompanies = () => {
     const filteredCompanies = useMemo(() => {
         if (!searchTerm) return companies;
         return companies.filter(company =>
-            company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            company.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             company.sector.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            company.contactPerson.toLowerCase().includes(searchTerm.toLowerCase())
+            company.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [companies, searchTerm]);
 

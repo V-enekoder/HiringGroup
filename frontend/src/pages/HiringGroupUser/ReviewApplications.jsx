@@ -43,16 +43,6 @@ const ReviewApplications = () => {
             }
         }
 
-        const getAllPostulations = async () => {
-            try{
-                const response = await postulationService.getAllPostulations()
-                const data = response.data
-                setPostulations(data)
-            }catch(error){
-                console.error('Error al cargar las postulaciones de empleo:', error)
-            }
-        }
-
         const getAllCompanies = async () => {
             try{
                 const response = await companyService.getAllCompanies()
@@ -76,7 +66,6 @@ const ReviewApplications = () => {
         }
 
         getActiveJobOffers()
-        getAllPostulations()
         getAllCompanies()
         getAllContractingPeriods()
     }, [])
@@ -102,15 +91,14 @@ const ReviewApplications = () => {
         }
     }, [offers]);
 
-    /*const filteredOffers = useMemo(() => {
+    const filteredOffers = useMemo(() => {
         return offers.filter(offer => {
-            const company = initialCompanies.find(c => c.id === offer.companyId);
-            const matchStatus = offer.estatus === 'activa';
-            const matchCompany = !filterCompany || offer.companyId === filterCompany;
-            const matchSearch = !searchTerm || offer.cargo.toLowerCase().includes(searchTerm.toLowerCase()) || company.name.toLowerCase().includes(searchTerm.toLowerCase());
-            return matchStatus && matchCompany;
+            const company = companies.find(c => c.id === offer.companyId);
+            const matchCompany = !filterCompany || offer.companyName === filterCompany;
+            const matchSearch = !searchTerm || offer.openPosition.toLowerCase().includes(searchTerm.toLowerCase());
+            return matchCompany && matchSearch;
         });
-    }, [offers, filterCompany, searchTerm]);*/
+    }, [offers, filterCompany, searchTerm]);
     
     const limpiarFiltros = () => {
         setFiltroEstatus(null);
@@ -230,7 +218,7 @@ const ReviewApplications = () => {
             <div className='contenedorTarjeta' style={{ padding: '16px 24px' }}>
                 <Flex gap="middle"  align="center">
                     <Text strong style={{ whiteSpace: 'nowrap' }}>Filtrar por:</Text>
-                    <Select placeholder="Filtrar por empresa" options={companies.map(c => ({ value: c.id, label: c.companyName }))} value={filterCompany} onChange={setFilterCompany} style={{ flexGrow: 1, minWidth: 200 }} allowClear />
+                    <Select placeholder="Filtrar por empresa" options={companies.map(c => ({ value: c.companyName, label: c.companyName }))} value={filterCompany} onChange={setFilterCompany} style={{ flexGrow: 1, minWidth: 200 }} allowClear />
                     <Input placeholder="Buscar por cargo..." prefix={<SearchOutlined />} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ flexGrow: 2, minWidth: 250 }} allowClear />
                     <Button icon={<ClearOutlined />} onClick={limpiarFiltros}>Limpiar Filtros</Button>
                 </Flex>
@@ -238,8 +226,8 @@ const ReviewApplications = () => {
 
             {/* --- CUADRÍCULA DE OFERTAS (VISTA DE TARJETAS) --- */}
             <div className='receipts-grid'>
-                {offers.length > 0 ? (
-                    offers.map(offer => {
+                {filteredOffers.length > 0 ? (
+                    filteredOffers.map(offer => {
                         const company = offer.companyName;
                         const applicantCount = postulationsByOffer[offer.id]?.length || 0;
                         return (

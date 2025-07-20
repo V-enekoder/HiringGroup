@@ -11,8 +11,8 @@ const { Title, Text } = Typography;
 
 // Opciones para el selector de filtro
 const estatusOptions = [
-    { value: 'activa', label: 'Activas' },
-    { value: 'inactiva', label: 'Inactivas' }
+    { value: true, label: 'Activas' },
+    { value: false, label: 'Inactivas' }
 ];
 
 const EditOffers = () => {
@@ -77,15 +77,15 @@ const EditOffers = () => {
     }, [companyId])
 
     // Memoriza las ofertas filtradas para optimizar el rendimiento. Solo se recalcula si cambian las dependencias.
-    /*const ofertasFiltradas = useMemo(() => {
+    const ofertasFiltradas = useMemo(() => {
         return offers.filter(offer => {
-            const matchEstatus = !filtroEstatus || offer.estatus === filtroEstatus;
+            const matchEstatus = filtroEstatus === null || offer.active === filtroEstatus;
             const matchSearch = !searchTerm ||
-                offer.cargo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                offer.profesion.toLowerCase().includes(searchTerm.toLowerCase());
+                offer.openPosition.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                offer.professionName.toLowerCase().includes(searchTerm.toLowerCase());
             return matchEstatus && matchSearch;
         });
-    }, [offers, filtroEstatus, searchTerm]);*/
+    }, [offers, filtroEstatus, searchTerm]);
 
 
     // --- Funciones para manejar las ofertas ---
@@ -193,9 +193,9 @@ const EditOffers = () => {
 
             {/* Grid que muestra las tarjetas de las ofertas */}
             <div className='receipts-grid'>
-                {offers.length > 0 ? (
+                {ofertasFiltradas.length > 0 ? (
                     // Itera sobre las ofertas filtradas para renderizarlas
-                    offers.map((offer) => (
+                    ofertasFiltradas.map((offer) => (
                         <div key={offer.id} className='receipt-card' style={{height: '100%'}}>
                             <Flex vertical justify="space-between" style={{height: '100%'}}>
                                 <div>

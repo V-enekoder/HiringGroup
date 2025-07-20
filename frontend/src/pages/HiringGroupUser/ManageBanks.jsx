@@ -43,12 +43,12 @@ const ManageBanks = () => {
     }, [])
 
     // Memoriza la lista de bancos filtrados
-    /*const filteredBanks = useMemo(() => {
+    const filteredBanks = useMemo(() => {
         if (!searchTerm) return banks;
         return banks.filter(bank =>
             bank.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [banks, searchTerm]);*/
+    }, [banks, searchTerm]);
 
     // --- MANEJADORES DE ACCIONES (CRUD) ---
     const handleCreate = () => {
@@ -120,8 +120,8 @@ const ManageBanks = () => {
 
             {/* --- CUADRÍCULA DE BANCOS --- */}
             <div className='receipts-grid'>
-                {banks.length > 0 ? (
-                    banks.map((bank) => (
+                {filteredBanks.length > 0 ? (
+                    filteredBanks.map((bank) => (
                         <div key={bank.id} className='receipt-card' style={{height:'90px'}}>
                             <Flex justify="space-between" align="start">
                                 {/* Contenido principal de la tarjeta */}
