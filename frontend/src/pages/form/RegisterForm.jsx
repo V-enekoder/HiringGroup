@@ -1,29 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect  } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Card, Typography, Steps, Row, Col, Space, message, DatePicker, Select, Divider, App } from 'antd';
 import { UserOutlined, SolutionOutlined, EnvironmentOutlined, MobileOutlined, MailOutlined, LockOutlined, BankOutlined, CreditCardOutlined, HomeOutlined, ArrowLeftOutlined, PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import '../styles/form.css';
-import { authService, emergencyContactService, professionService, curriculumService, laboralExperienceService } from '../../services/api';
-import axios from 'axios';
+import { authService, emergencyContactService, professionService, curriculumService, laboralExperienceService, bankService } from '../../services/api';
 
 
 const { Title, Text } = Typography;
 const { Step } = Steps;
 const { Option } = Select;
 
-const mockBanks = [
-    { id: 1, name: 'Banesco' },
-    { id: 2, name: 'Mercantil' },
-    { id: 3, name: 'BBVA Provincial' },
-    { id: 4, name: 'Banco de Venezuela' },
-];
-
-
 const RegisterForm = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState({});
     const [loading, setLoading] = useState(false);
     const [createdProfileId, setCreatedProfileId] = useState(null);
+    const [banks, setBanks] = useState([]);
     const navigate = useNavigate();
 
     const [form1] = Form.useForm();
@@ -36,6 +28,20 @@ const RegisterForm = () => {
     const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
     const { message } = App.useApp()
+
+     useEffect(() => {
+        const fetchBanks = async () => {
+            try {
+                const response = await bankService.getAllBanks();
+                setBanks(response.data); 
+            } catch (error) {
+                console.error("Error al cargar la lista de bancos:", error);
+                message.error("No se pudo cargar la lista de bancos. Inténtalo de nuevo más tarde.");
+            }
+        };
+
+        fetchBanks();
+    }, []);
 
     const steps = [
         {
@@ -93,7 +99,7 @@ const RegisterForm = () => {
                     </Form.Item>
                     <Form.Item label="Contraseña" name="password" rules={[
                         { required: true, message: 'La contraseña es obligatoria' },
-                        { min: 8, message: 'Debe tener mínimo  caracteres' }
+                        { min: 8, message: 'Debe tener mínimo 8 caracteres' }
                     ]}>
                         <Input.Password prefix={<LockOutlined />} placeholder='ejem. Chi123.12' />
                     </Form.Item>
@@ -106,8 +112,8 @@ const RegisterForm = () => {
                 <Form form={form3} layout="vertical" initialValues={formData}>
                     <Title level={4} style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Datos Bancarios</Title>
                     <Form.Item label="Banco" name="bankId" rules={[{ required: true, message: 'El banco es obligatorio' }]}>
-                        <Select placeholder="Selecciona tu banco">
-                            {mockBanks.map(bank => <Option key={bank.id} value={bank.id}>{bank.name}</Option>)}
+                       <Select placeholder="Selecciona tu banco" loading={banks.length === 0}>
+                            {banks.map(bank => <Option key={bank.id} value={bank.id}>{bank.name}</Option>)}
                         </Select>
                     </Form.Item>
                     <Form.Item label="Número de Cuenta Bancaria" name="bankAccount" rules={[
