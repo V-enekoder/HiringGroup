@@ -27,7 +27,6 @@ export const authService = {
     login: (credentials) => apiClient.post('/users/login', credentials),
     registerUserAndProfile: (data) =>
          apiClient.post('/users/register', data),
-    
 };
 
 export const candidateService = {
@@ -68,7 +67,8 @@ export const bankService = {
 }
 
 export const professionService = {
-    getAllProfessions: () => apiClient.get('/professions/')
+    getAllProfessions: () => apiClient.get('/professions/'),
+    createProfession: (professionData) => apiClient.post('/professions/', professionData),
 }
 
 export const zoneService = {
@@ -76,6 +76,7 @@ export const zoneService = {
 }
 
 export const curriculumService = {
+    createCurriculum: (curriculumData) => apiClient.post('/curriculums/', curriculumData),
     getCurriculumByCandidateId: (candidateId) => apiClient.get(`/curriculums/candidate/${candidateId}`),
     updateCurriculumInfo: (curriculumId, data) => apiClient.put(`/curriculums/${curriculumId}`, data)
 }
@@ -89,10 +90,12 @@ export const contractingPeriodService = {
 }
 
 export const emergencyContactService = {
+    createContact: (contactData) => apiClient.post('/emergency-contacts/', contactData),
     getEmergencyContactbyCandidateId: (candidateId) => apiClient.get(`/emergency-contacts/${candidateId}`)
 }
 
 export const laboralExperienceService = {
+    createExperience: (experienceData) => apiClient.post('/laboral-experiences/', experienceData),
     createNewLaboralExperience: (data) => apiClient.post('/laboral-experiences/', data),
     updateLaboralExperience: (laboralExperienceId, data) => apiClient.put(`/laboral-experiences/${laboralExperienceId}`, data),
     deleteLaboralExperience: (laboralExperienceId) => apiClient.delete(`/laboral-experiences/${laboralExperienceId}`)
