@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Card, Typography, Steps, Row, Col, Space, message, DatePicker, Select, Divider,  App } from 'antd';
+import { Form, Input, Button, Card, Typography, Steps, Row, Col, Space, message, DatePicker, Select, Divider, App } from 'antd';
 import { UserOutlined, SolutionOutlined, EnvironmentOutlined, MobileOutlined, MailOutlined, LockOutlined, BankOutlined, CreditCardOutlined, HomeOutlined, ArrowLeftOutlined, PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import '../styles/form.css';
-import { authService, candidateService } from '../../services/api';
+import { authService, emergencyContactService, professionService, curriculumService, laboralExperienceService } from '../../services/api';
 import axios from 'axios';
 
 
 const { Title, Text } = Typography;
 const { Step } = Steps;
 const { Option } = Select;
+
+const mockBanks = [
+    { id: 1, name: 'Banesco' },
+    { id: 2, name: 'Mercantil' },
+    { id: 3, name: 'BBVA Provincial' },
+    { id: 4, name: 'Banco de Venezuela' },
+];
+
 
 const RegisterForm = () => {
     const [currentStep, setCurrentStep] = useState(0);
@@ -59,7 +67,7 @@ const RegisterForm = () => {
                     ]}>
                         <Input prefix={<MobileOutlined />} placeholder='ejem. 04249650528' />
                     </Form.Item>
-                     <Form.Item label="Direccion" name="address" rules={[
+                    <Form.Item label="Direccion" name="address" rules={[
                         { required: true, message: 'La dirección es obligatoria' },
                     ]}>
                         <Input prefix={<EnvironmentOutlined />} placeholder='ejem. Puerto Ordaz Villa Alianza casa N' />
@@ -97,13 +105,12 @@ const RegisterForm = () => {
             content: (
                 <Form form={form3} layout="vertical" initialValues={formData}>
                     <Title level={4} style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Datos Bancarios</Title>
-                    <Form.Item label="Nombre del Banco" name="bank" rules={[
-                        { required: true, message: 'El banco es obligatorio' },
-                        { min: 3, message: 'Debe tener al menos 3 caracteres' }
-                    ]}>
-                        <Input prefix={<BankOutlined />} placeholder='Banesco' />
+                    <Form.Item label="Banco" name="bankId" rules={[{ required: true, message: 'El banco es obligatorio' }]}>
+                        <Select placeholder="Selecciona tu banco">
+                            {mockBanks.map(bank => <Option key={bank.id} value={bank.id}>{bank.name}</Option>)}
+                        </Select>
                     </Form.Item>
-                    <Form.Item label="Número de Cuenta Bancaria" name="numbank" rules={[
+                    <Form.Item label="Número de Cuenta Bancaria" name="bankAccount" rules={[
                         { required: true, message: 'El número de cuenta es obligatorio' },
                         { pattern: /^\d{20}$/, message: 'Debe ser un número de 20 dígitos' }
                     ]}>
@@ -117,13 +124,13 @@ const RegisterForm = () => {
             content: (
                 <Form form={form4} layout="vertical" initialValues={formData}>
                     <Title level={4} style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Contacto de Emergencia</Title>
-                    <Form.Item label="Nombre Completo" name="nameEmergency" rules={[
-                        { required: true, message: 'El nombre es obligatorio' },
-                        { min: 3, message: 'Debe tener al menos 3 caracteres' }
-                    ]}>
-                        <Input prefix={<UserOutlined />} placeholder='ejem. Rosa Mendez' />
+                    <Form.Item label="Nombre" name="emergency_name" rules={[{ required: true, message: 'El nombre es obligatorio' }]}>
+                        <Input prefix={<UserOutlined />} placeholder='ejem. Rosa' />
                     </Form.Item>
-                    <Form.Item label="Número de Teléfono" name="numberEmergency" rules={[
+                    <Form.Item label="Apellido" name="emergency_lastName" rules={[{ required: true, message: 'El apellido es obligatorio' }]}>
+                        <Input prefix={<UserOutlined />} placeholder='ejem. Mendez' />
+                    </Form.Item>
+                    <Form.Item label="Número de Teléfono" name="emergency_phoneNumber" rules={[
                         { required: true, message: 'El teléfono es obligatorio' },
                         { pattern: /^\d{11}$/, message: 'Debe ser un número de 11 dígitos' }
                     ]}>
@@ -137,41 +144,37 @@ const RegisterForm = () => {
             content: (
                 <Form form={form5} layout="vertical" initialValues={formData}>
                     <Title level={4} style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Información Profesional</Title>
-                    <Form.Item label="Profesión" name="profession" rules={[
-                        { required: true, message: 'La profesión es obligatoria' },
-                        { min: 2, message: 'Debe tener al menos 2 caracteres' }
-                    ]}>
+                    <Form.Item label="Profesión" name="profession_name" rules={[{ required: true, message: 'La profesión es obligatoria' }]}>
                         <Input placeholder='ejem. Ingeniero en Informática' />
                     </Form.Item>
-                    <Form.Item label="Universidad de Egreso" name="university" rules={[
-                        { required: true, message: 'La universidad es obligatoria' },
-                        { min: 2, message: 'Debe tener al menos 2 caracteres' }
-                    ]}>
+                    <Form.Item label="Universidad de Egreso" name="university_of_graduation" rules={[{ required: true, message: 'La universidad es obligatoria' }]}>
                         <Input placeholder='ejem. UNEG' />
                     </Form.Item>
+
                     <Divider orientation="left">Experiencias Laborales</Divider>
+
                     <Form.List name="experiences">
                         {(fields, { add, remove }) => (
                             <>
                                 {fields.map(({ key, name, ...restField }) => (
                                     <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                                        <Form.Item {...restField} name={[name, 'company_name']} rules={[{ required: true, message: 'Nombre de la empresa' }]}>
+                                        <Form.Item {...restField} name={[name, 'company']} rules={[{ required: true, message: 'Empresa' }]}>
                                             <Input placeholder="Empresa" />
                                         </Form.Item>
-                                        <Form.Item {...restField} name={[name, 'position']} rules={[{ required: true, message: 'Cargo' }]}>
+                                        <Form.Item {...restField} name={[name, 'job_title']} rules={[{ required: true, message: 'Cargo' }]}>
                                             <Input placeholder="Cargo" />
                                         </Form.Item>
-                                        <Form.Item {...restField} name={[name, 'startDate']} rules={[{ required: true, message: 'Fecha de inicio' }]}>
-                                            <DatePicker placeholder="Inicio" format="YYYY-MM-DD" />
+                                        <Form.Item {...restField} name={[name, 'start_date']} rules={[{ required: true, message: 'Inicio' }]}>
+                                            <DatePicker placeholder="Inicio" format="YYYY-MM-DD" style={{ width: '100%' }} />
                                         </Form.Item>
-                                        <Form.Item {...restField} name={[name, 'endDate']} rules={[{ required: true, message: 'Fecha de fin' }]}>
-                                            <DatePicker placeholder="Fin" format="YYYY-MM-DD" />
+                                        <Form.Item {...restField} name={[name, 'end_date']}>
+                                            <DatePicker placeholder="Fin (Opcional)" format="YYYY-MM-DD" style={{ width: '100%' }} />
                                         </Form.Item>
                                         <MinusCircleOutlined onClick={() => remove(name)} />
                                     </Space>
                                 ))}
                                 <Form.Item>
-                                    <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />}> Añadir Experiencia </Button>
+                                    <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}> Añadir Experiencia </Button>
                                 </Form.Item>
                             </>
                         )}
@@ -181,69 +184,87 @@ const RegisterForm = () => {
         }
     ];
 
+    const handleNext = async () => {
+        setLoading(true);
+        try {
+            const currentForm = forms[currentStep];
+            const values = await currentForm.validateFields();
+            const newFormData = { ...formData, ...values };
+            setFormData(newFormData);
 
-// En tu RegisterForm.jsx
+            if (currentStep < steps.length - 1) {
+                if (currentStep === 2) {
+                    const payload = {
+                        name: newFormData.name, email: newFormData.email, password: newFormData.password, role_id: 4,
+                        last_name: newFormData.last_name, document: newFormData.document, phone_number: newFormData.phone_number,
+                        address: newFormData.address, blood_type: newFormData.blood_type, bankId: newFormData.bankId,
+                        bankAccount: newFormData.bankAccount,
+                    };
+                    const response = await authService.registerUserAndProfile(payload);
+                    const newProfileId = response.data.profile_id;
+                    if (!newProfileId) throw new Error("La API no devolvió un 'profile_id' válido.");
+                    setCreatedProfileId(newProfileId);
+                    message.success('¡Usuario creado! Continúa con tu perfil.');
+                }
+                if (currentStep === 3) {
+                    if (!createdProfileId) throw new Error("No se pudo obtener el ID del candidato.");
+                    const payload = {
+                        candidate_id: createdProfileId, name: newFormData.emergency_name,
+                        last_name: newFormData.emergency_lastName, phone_number: newFormData.emergency_phoneNumber,
+                    };
+                    await emergencyContactService.createContact(payload);
+                    message.success('Contacto de emergencia guardado.');
+                }
+                setCurrentStep(currentStep + 1);
 
-const handleNext = async () => {
-    setLoading(true);
-    try {
-        const currentForm = forms[currentStep];
-        const values = await currentForm.validateFields();
-        
-        const newFormData = { ...formData, ...values };
-        setFormData(newFormData);
+            } else {
+                console.log("Finalizando registro. Datos profesionales a enviar:", newFormData);
 
-        if (currentStep < 4) { // Si no es el último paso
-            
-            if (currentStep === 1) { 
-                console.log("Paso 1 completado. Compilando y enviando datos iniciales...");
-                
-                const payload = {
-                    name: newFormData.name,
-                    email: newFormData.email,
-                    password: newFormData.password,
-                    role_id: 4,
-                    last_name: newFormData.last_name,
-                    document: newFormData.document,
-                    phone_number: newFormData.phone_number,
-                    address: newFormData.address,
-                    blood_type: newFormData.blood_type,
+                if (!createdProfileId) {
+                    throw new Error("No se encontró el ID del perfil para asociar la información profesional.");
+                }
+
+                const professionPayload = { name: newFormData.profession_name };
+                const professionResponse = await professionService.createProfession(professionPayload);
+                const newProfessionId = professionResponse.data.id;
+                console.log("Profesión creada con ID:", newProfessionId);
+
+                const curriculumPayload = {
+                    candidate_id: createdProfileId,
+                    profession_id: newProfessionId,
+                    university_of_graduation: newFormData.university_of_graduation,
                 };
+                const curriculumResponse = await curriculumService.createCurriculum(curriculumPayload);
+                const newCurriculumId = curriculumResponse.data.id;
+                console.log("Currículum creado con ID:", newCurriculumId);
 
-                console.log("DEBUG: Payload a punto de ser enviado:", payload);
-                
-                const response = await authService.registerUserAndProfile(payload);
-                const newProfileId = response.data.profile_id; 
-                setCreatedProfileId(newProfileId);
+                if (newFormData.experiences && newFormData.experiences.length > 0) {
+                    console.log("Enviando experiencias laborales...");
+                    for (const exp of newFormData.experiences) {
+                        const experiencePayload = {
+                            curriculum_id: newCurriculumId,
+                            company: exp.company,
+                            job_title: exp.job_title,
+                            start_date: exp.start_date.format('YYYY-MM-DD'),
+                            end_date: exp.end_date ? exp.end_date.format('YYYY-MM-DD') : null,
+                        };
+                        await laboralExperienceService.createExperience(experiencePayload);
+                        console.log(`Experiencia en "${exp.company}" guardada.`);
+                    }
+                }
 
-                message.success('¡Usuario creado! Continúa con tu perfil.');
+                message.success(`¡Registro completado! Serás redirigido al login.`);
+                setTimeout(() => navigate('/login'), 2000);
             }
 
-            setCurrentStep(currentStep + 1);
-
-        } else { 
-            
-            console.log("Enviando información final...", newFormData);
-
-            
-            message.success(`¡Registro completado! Serás redirigido al login.`);
-            setTimeout(() => navigate('/login'), 2000);
+        } catch (error) {
+            console.error('Error en el paso de registro:', error);
+            const errorMessage = error.response?.data?.error || error.message || 'Ocurrió un error inesperado.';
+            message.error(errorMessage);
+        } finally {
+            setLoading(false);
         }
-
-    } catch (error) {
-        console.error('Error en el paso de registro:', error);
-        
-        let errorMessage = 'Por favor, corrige los errores antes de continuar';
-        if (error.response && error.response.data && error.response.data.error) {
-            errorMessage = error.response.data.error; 
-        }
-        
-        message.error(errorMessage);
-    } finally {
-        setLoading(false);
-    }
-};
-
+    };
 
     return (
         <div className="register-container">
