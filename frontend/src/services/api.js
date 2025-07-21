@@ -29,6 +29,11 @@ export const authService = {
          apiClient.post('/users/register', data),
 };
 
+export const userService = {
+    updateUser: (userId, data) => apiClient.put(`/users/${userId}`, data),
+    changePassword: (userId, data) => apiClient.put(`/users/password/${userId}`, data),
+};
+
 export const candidateService = {
     updateBankDetails: (candidateId, data) => apiClient.put(`/candidates/${candidateId}/bank`, data),
     updateEmergencyContact: (candidateId, data) => apiClient.put(`/candidates/${candidateId}/emergency`, data),
