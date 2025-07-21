@@ -27,39 +27,39 @@ const JobOffers = () => {
     const [filtroEstado, setFiltroEstado] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
-    useEffect(() => {    
-        if(!candidateId) return   
+    useEffect(() => {
+        if (!candidateId) return
         const getJobOffers = async () => {
-            try{
+            try {
                 const response = await jobOffersService.getActiveOffers()
                 const data = response.data
-                
+
                 setJobOffers(data)
-            }catch(error){
+            } catch (error) {
                 console.error('Error al cargar ofertas de empleo:', error)
                 message.error('Error al cargar las ofertas de empleo desde el servidor.')
             }
         }
 
         const getZones = async () => {
-            try{
+            try {
                 const response = await zoneService.getAllZones()
                 const data = response.data
 
                 setZones(data)
-            }catch(error){
+            } catch (error) {
                 console.error('Error al cargar zonas:', error)
                 message.error('Error al cargar las zonas desde el servidor.')
             }
         }
 
         const getCurriculumByCandidateId = async () => {
-            try{
+            try {
                 const response = await curriculumService.getCurriculumByCandidateId(candidateId)
                 const data = response.data
-                
+
                 setCurriculum(data)
-            }catch(error){
+            } catch (error) {
                 console.error('Error al cargar curriculum:', error)
                 message.error('Error al cargar el curriculum desde el servidor.')
             }
@@ -87,7 +87,7 @@ const JobOffers = () => {
                 offer.openPosition.toLowerCase().includes(lowercasedTerm)
             );
         }
-        
+
         return offers;
     }, [searchTerm, filtroEstado, jobOffers]);
 
@@ -103,21 +103,28 @@ const JobOffers = () => {
 
     // Simula la postulación y cierra el modal.
     const handleApply = async () => {
-        try{
+
+        if (user?.hired || user?.is_hired) {
+            message.warning('Ya estás contratado. No puedes postularte a nuevas ofertas.');
+            return;
+        }
+
+        try {
             console.log("candidato: ", candidateId, "oferta: ", selectedOffer.id)
             const dataToSend = {
                 candidateId: candidateId,
                 jobId: selectedOffer.id
             }
             await postulationService.creaneNewPostulation(dataToSend)
-            
+
             message.success(`Te has postulado exitosamente a: ${selectedOffer.profession}`);
             setIsDetailsModalOpen(false);
-        }catch(error){
+        } catch (error) {
             console.error('Error al postularse al puesto:', error)
+            message.error('Hubo un error al postularse. Intenta de nuevo más tarde.');
         }
     };
-    
+
     // Resetea los estados de los filtros a su valor inicial.
     const limpiarFiltros = () => {
         setFiltroEstado(null);
@@ -140,25 +147,25 @@ const JobOffers = () => {
             {/* Estructura principal de la página: currículum a la izquierda, ofertas a la derecha. */}
             <Row justify="center" gutter={[32, 32]}>
                 <Col xs={24} md={8} lg={7} xl={6}>
-                    <CardCurriculum info={curriculum}/>
+                    <CardCurriculum info={curriculum} />
                 </Col>
 
                 <Col xs={24} md={16} lg={17} xl={18}>
                     <Flex vertical gap="large">
-                        
+
                         {/* Contenedor para la barra de búsqueda y filtros principales. */}
                         <div className='contenedorTarjeta' style={{ padding: '16px 24px' }}>
                             <Flex gap="middle" align="center">
                                 <Search style={{ flexGrow: 1 }} size='large' placeholder="Buscar cargo, profesión o empresa..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} allowClear />
-                                <Select 
-                                    placeholder="Estados" 
+                                <Select
+                                    placeholder="Estados"
                                     options={zoneOptions}
                                     loading={zones.length === 0}
-                                    value={filtroEstado} 
-                                    onChange={setFiltroEstado} 
-                                    size='large' 
-                                    style={{ minWidth: 200 }} 
-                                    allowClear 
+                                    value={filtroEstado}
+                                    onChange={setFiltroEstado}
+                                    size='large'
+                                    style={{ minWidth: 200 }}
+                                    allowClear
                                 />
                                 <Button icon={<ClearOutlined />} onClick={limpiarFiltros} size='large'>Limpiar Filtros</Button>
                             </Flex>
@@ -174,7 +181,7 @@ const JobOffers = () => {
 
             {/* Modal para ver los detalles, se muestra solo si hay una oferta seleccionada. */}
             {selectedOffer && (
-                <Modal title={<Title level={3}>Detalles de la Oferta</Title>} open={isDetailsModalOpen} onCancel={handleDetailsCancel} footer={[ <Button key="back" onClick={handleDetailsCancel}>Cerrar</Button>, <Button key="submit" type="primary" onClick={handleApply}>Postularme</Button>, ]} width={700}>
+                <Modal title={<Title level={3}>Detalles de la Oferta</Title>} open={isDetailsModalOpen} onCancel={handleDetailsCancel} footer={[<Button key="back" onClick={handleDetailsCancel}>Cerrar</Button>, <Button key="submit" type="primary" onClick={handleApply} disabled={user?.hired || user?.is_hired}>Postularme</Button>,]} width={700}>
                     <div>
                         <Text type="secondary">{selectedOffer.companyName}</Text>
                         <Title level={2} style={{ marginTop: 0, color: '#376b83' }}>{selectedOffer.professionName}</Title>

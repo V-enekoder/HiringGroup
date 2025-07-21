@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Flex, Typography, Button, Select, Tag } from 'antd';
+import { Flex, Typography, Button, Select, Tag, message  } from 'antd';
 import { ClearOutlined, BankOutlined, ClockCircleOutlined, DollarCircleOutlined} from '@ant-design/icons';
 import '../styles/pag.css'; 
 import { useAuth } from '../../context/AuthContext';
@@ -11,7 +11,8 @@ const HistoryOffers = () => {
     const { user } = useAuth()
     const candidateId = user?.profile_id
     const [companies, setCompanies] = useState([])
-    const [postulations, setPostulations] = useState([])
+    const [postulations, setPostulations] = useState(null) // Inicializa como null
+    const [loading, setLoading] = useState(true) // Estado para la carga
     // --- Estados para controlar los filtros ---
     const [filtroEmpresa, setFiltroEmpresa] = useState(null);
     const [filtroEstatus, setFiltroEstatus] = useState(null);
@@ -32,14 +33,18 @@ const HistoryOffers = () => {
         }
 
         const getPostulationsByCandidate = async () => {
+            setLoading(true) // Inicia la carga
             try{
                 const response = await postulationService.getPostulationsByCandidate(candidateId)
                 const data = response.data
 
-                setPostulations(data)
+                setPostulations(data || []) // Si data es null/undefined, usa un array vacío
             }catch(error){
                 console.error('Error al cargar postulaciones:', error)
                 message.error('Error al cargar las postulaciones desde el servidor.')
+                setPostulations([]) // En caso de error, establece a un array vacío
+            } finally {
+                setLoading(false) // Finaliza la carga
             }
         }
         getCompanies()
@@ -48,6 +53,8 @@ const HistoryOffers = () => {
 
     // Memoriza el resultado del filtrado para mejorar el rendimiento
     const postulacionesFiltradas = useMemo(() => {
+        if (!postulations) return []; // Si postulations es null, devuelve un array vacío
+
         const sorted = [...postulations].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
         
         if (!filtroEmpresa && !filtroEstatus) {
@@ -76,17 +83,20 @@ const HistoryOffers = () => {
         }
     };
 
-    const estatusDisponibles = [...new Set(postulations.map(a => a.hasContract))].map(e => ({
-        value: e,
-        label: e ? 'Aceptada' : 'En Revision'
-    }));
+    const estatusDisponibles = useMemo(() => {
+        if (!postulations) return []; 
+        return [...new Set(postulations.map(a => a.hasContract))].map(e => ({
+            value: e,
+            label: e ? 'Aceptada' : 'En Revision'
+        }));
+    }, [postulations]);
 
     const companyOptions = companies.map(c => ({
         label: c.companyName,     // lo que se ve en el Select
         value: c.companyName        // lo que se guarda en el form
     }));
 
-    if (!postulacionesFiltradas) {
+    if (loading) {
         return <div>Cargando información...</div>;
     }
 
