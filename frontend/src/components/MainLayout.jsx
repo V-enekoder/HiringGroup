@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import SettingsModal from './SettingsModal';
 
 import {
   MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, SolutionOutlined, FileTextOutlined,
@@ -29,11 +30,6 @@ const hiringGroupItems = [
   },
 ];
 
-// Rol: COMPANY
-const companyItems = [
-  { key: '/usuario-Empresa/editar-Ofertas', icon: <EditOutlined />, label: <Link to="/usuario-Empresa/editar-Ofertas">Gestionar Ofertas</Link> },
-];
-
 // Rol: CANDIDATE
 const baseCandidateItems = [
   { key: '/candidato/curriculum', icon: <UserOutlined />, label: <Link to="/candidato/curriculum">Currículum</Link> },
@@ -47,6 +43,7 @@ const MainLayout = () => {
   const { token } = theme.useToken();
   const location = useLocation();
   const [isCertificateModalOpen, setIsCertificateModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
@@ -63,6 +60,12 @@ const MainLayout = () => {
     salary: '5500'
   };
 
+// Rol: COMPANY
+const companyItems = [
+  { key: '/usuario-Empresa/editar-Ofertas', icon: <EditOutlined />, label: <Link to="/usuario-Empresa/editar-Ofertas">Gestionar Ofertas</Link> },
+  { key: 'settings', icon: <SettingOutlined />, label: 'Mi Cuenta', onClick: () => setIsSettingsModalOpen(true) },
+];
+
   const menuItems = useMemo(() => {
     if (!user || !user.role) {
       return [];
@@ -77,7 +80,7 @@ const MainLayout = () => {
         break;
 
       case 'company':
-       roleItems = companyItems;
+        roleItems = companyItems;
         break;
 
       case 'candidate':
@@ -94,15 +97,15 @@ const MainLayout = () => {
       default:
         roleItems = [];
     }
-     return [
+    return [
       ...roleItems,
-      { type: 'divider', key: 'divider' }, // Separador visual
+      { type: 'divider', key: 'divider' },
       {
         key: 'logout',
         icon: <PoweroffOutlined />,
         label: 'Cerrar Sesión',
         onClick: handleLogout,
-        danger: true, 
+        danger: true,
       },
     ];
 
@@ -143,6 +146,11 @@ const MainLayout = () => {
         open={isCertificateModalOpen}
         onCancel={() => setIsCertificateModalOpen(false)}
         userData={contractData}
+      />
+
+      <SettingsModal
+        open={isSettingsModalOpen}
+        onCancel={() => setIsSettingsModalOpen(false)}
       />
     </>
   );
